@@ -1,6 +1,6 @@
 # rapidjson
 
-Go package using C++ rapidjson for better JSON handling 
+Go package using [C++ rapidjson](https://github.com/miloyip/rapidjson) for better JSON handling 
 
 # Quick start
 
@@ -11,8 +11,6 @@ In package main:
     json, err := rapidjson.NewParsedStringJson(`{"project":"rapidjson","stars":10,"use":"everywhere"}`)
     ...
     fmt.Prinln(json.String())
-
-Make sure building with correct version of gpm script (must include compile instructions for rapidjson).
 
 # Key concepts
 
