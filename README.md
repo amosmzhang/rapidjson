@@ -16,7 +16,7 @@ Make sure building with correct version of gpm script (must include compile inst
 
 # Key concepts
 
-rapidjson has two types: Container and Doc. Container is a generalized value type, and can take on any specific type (int, array, object, etc.). Doc is a specialized Container with additional parsing and memory allocation functionality. In general, create one Doc, get its Container, and work with that Container. Doc is a pointer to C land, and should be freed manually.
+rapidjson has two types: Container and Doc. Container is a generalized value type, and can take on any specific type (int, array, object, etc.). Doc is a specialized Container with additional parsing and memory allocation functionality. In general, create one Doc, get its Container, and work with that Container. Doc is a pointer to C land, and should be freed manually. Key values pairs in rapidjson objects are referred to as members.
 
 # Parsing
 
@@ -41,7 +41,7 @@ Getting a Doc's Container:
 
     func (json Doc) GetContainer() Container 
 
-Working Containers:
+Working with Containers:
 
     func (ct Container) HasMember(key string) bool
     func (ct Container) GetMemberCount() (int, error)
