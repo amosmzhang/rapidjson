@@ -391,7 +391,7 @@ func (ct Container) InitObj() {
 }
 func (ct Container) AddValue(key string, v interface{}) error {
 	item := ct.doc.NewContainer()
-	err := item.SetValue(item)
+	err := item.SetValue(v)
 	if err != nil {
 		return err
 	}
