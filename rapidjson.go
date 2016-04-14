@@ -38,6 +38,7 @@ const (
 
 type Doc struct {
 	json C.JsonDoc
+    allocated []*Container
 }
 
 type Container struct {
@@ -68,12 +69,16 @@ func NewDoc() Doc {
 	return json
 }
 func (json Doc) Free() {
+    for _, ct := range json.allocated {
+        ct.Free()
+    }
 	C.JsonFree(json.json)
 }
 func (json Doc) NewContainer() Container {
 	var ct Container
 	ct.doc = json
 	ct.ct = C.ValInit()
+    json.allocated = append(json.allocated, &ct)
 	return ct
 }
 func (json Doc) NewContainerObj() Container {
