@@ -393,6 +393,7 @@ func (ct Container) SetValue(v interface{}) error {
 		return nil
 	case string:
 		cStr := C.CString(v.(string))
+	    defer C.free(unsafe.Pointer(cStr))
 		C.SetString(ct.ct, cStr)
 		return nil
 	default:
@@ -419,6 +420,7 @@ func (ct Container) AddMember(key string, item Container) error {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
+	    defer C.free(unsafe.Pointer(cStr))
 		if CBoolTest(C.HasMember(ct.ct, cStr)) {
 			return ErrMemberExists
 		} else {
@@ -489,6 +491,7 @@ func (ct Container) RemoveMember(key string) error {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
+	    defer C.free(unsafe.Pointer(cStr))
 		C.RemoveMember(ct.ct, cStr)
 	}
 	return nil

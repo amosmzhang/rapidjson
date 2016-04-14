@@ -140,7 +140,8 @@ void SetDouble(JsonVal value, double num) {
     ((rapidjson::Value *)value)->SetDouble(num);
 }
 void SetString(JsonVal value, const char *str) {
-    ((rapidjson::Value *)value)->SetString(rapidjson::StringRef(str));
+    char *s = strdup(str);
+    ((rapidjson::Value *)value)->SetString(rapidjson::StringRef(s));
 }
 void SetBool(JsonVal value, int b) {
     ((rapidjson::Value *)value)->SetBool((bool)b);
@@ -165,11 +166,12 @@ JsonVal InitObj(JsonVal value) {
     return (void *) &((rapidjson::Value *)value)->SetObject();
 }
 void AddMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
+    char *key = strdup(k);
     rapidjson::Value *val = (rapidjson::Value *)value;
     rapidjson::Value *item = (rapidjson::Value *)v;
     rapidjson::Document *doc = (rapidjson::Document *)json;
 
-    val->AddMember(rapidjson::StringRef(k), *item, doc->GetAllocator());
+    val->AddMember(rapidjson::StringRef(key), *item, doc->GetAllocator());
 }
 
 void RemoveMember(JsonVal value, const char *k) {
