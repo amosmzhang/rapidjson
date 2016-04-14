@@ -139,9 +139,10 @@ void SetInt(JsonVal value, int num) {
 void SetDouble(JsonVal value, double num) {
     ((rapidjson::Value *)value)->SetDouble(num);
 }
-void SetString(JsonVal value, const char *str) {
-    char *s = strdup(str);
-    ((rapidjson::Value *)value)->SetString(rapidjson::StringRef(s));
+void SetString(JsonDoc json, JsonVal value, const char *str) {
+    rapidjson::Document *doc = (rapidjson::Document *)json;
+    std::string s = strdup(str);
+    ((rapidjson::Value *)value)->SetString(rapidjson::StringRef(s.c_str()), doc->GetAllocator());
 }
 void SetBool(JsonVal value, int b) {
     ((rapidjson::Value *)value)->SetBool((bool)b);
@@ -166,12 +167,13 @@ JsonVal InitObj(JsonVal value) {
     return (void *) &((rapidjson::Value *)value)->SetObject();
 }
 void AddMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
-    char *key = strdup(k);
     rapidjson::Value *val = (rapidjson::Value *)value;
     rapidjson::Value *item = (rapidjson::Value *)v;
     rapidjson::Document *doc = (rapidjson::Document *)json;
+    rapidjson::Value key;
+    SetString(json, &key, k);
 
-    val->AddMember(rapidjson::StringRef(key), *item, doc->GetAllocator());
+    val->AddMember(key, *item, doc->GetAllocator());
 }
 
 void RemoveMember(JsonVal value, const char *k) {

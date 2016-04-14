@@ -42,7 +42,7 @@ extern "C" {
 
     void SetInt(JsonVal, int);
     void SetDouble(JsonVal, double);
-    void SetString(JsonVal, const char *);
+    void SetString(JsonDoc, JsonVal, const char *);
     void SetBool(JsonVal, int);
     void SetNull(JsonVal);
     void SetValue(JsonVal, JsonVal);

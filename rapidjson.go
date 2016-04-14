@@ -394,7 +394,7 @@ func (ct Container) SetValue(v interface{}) error {
 	case string:
 		cStr := C.CString(v.(string))
 	    defer C.free(unsafe.Pointer(cStr))
-		C.SetString(ct.ct, cStr)
+		C.SetString(ct.doc.json, ct.ct, cStr)
 		return nil
 	default:
 		return ErrBadType
