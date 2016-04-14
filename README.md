@@ -38,6 +38,7 @@ For outputting:
 Getting a Doc's Container:
 
     func (json Doc) GetContainer() Container 
+    func (json Doc) GetContainerNewObj() Container
 
 Working with Containers:
 
@@ -64,9 +65,15 @@ Typed getters:
     func (ct Container) GetStringArray() ([]string, error)
     func (ct Container) GetArray() ([]Container, int, error)
 
+Making new Container, use root Doc to use memory allocator:
+
+    func (json Doc) NewContainer() Container
+    func (json Doc) NewContainerObj() Container
+    func (json Doc) NewContainerArray() Container
+
 # Setters
 
-SetValue() can be used for basic types int, float64, bool, string, null.
+SetValue() can be used for basic types int, float64, bool, string, null. Setters will overwrite previous type.
 
     func (ct Container) SetValue(v interface{}) error
     func (ct Container) SetContainer(item Container)
@@ -75,6 +82,8 @@ SetValue() can be used for basic types int, float64, bool, string, null.
     func (ct Container) AddMember(key string, item Container) error
     func (ct Container) AddMemberAtPath(path string, item Container) error
     func (ct Container) AddValueAtPath(path string, v interface{}) error
+    func (ct Container) SetMember(key string, item Container) error
+    func (ct Container) SetMemberValue(key string, v interface{}) error 
     func (ct Container) InitArray()
     func (ct Container) ArrayAppendContainer(item Container) error
     func (ct Container) ArrayAppend(v interface{}) error

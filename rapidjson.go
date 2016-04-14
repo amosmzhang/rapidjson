@@ -76,9 +76,33 @@ func (json Doc) NewContainer() Container {
 	ct.ct = C.ValInit()
 	return ct
 }
+func (json Doc) NewContainerObj() Container {
+    ct := json.NewContainer()
+    ct.InitObj()
+    return ct
+}
+func (json Doc) NewContainerArray() Container {
+    ct := json.NewContainer()
+    ct.InitArray()
+    return ct
+}
 func (ct Container) Free() {
 	C.ValFree(ct.ct)
 }
+func (json Doc) GetContainer() Container {
+	var ct Container
+	ct.ct = C.GetValue(json.json)
+	ct.doc = json
+	return ct
+}
+func (json Doc) GetContainerNewObj() Container {
+	var ct Container
+	ct.ct = C.GetValue(json.json)
+	ct.doc = json
+    ct.InitObj()
+	return ct
+}
+
 
 // parse
 func (json Doc) Parse(input []byte) error {
@@ -165,13 +189,6 @@ func (ct Container) GetMemberMap() (map[string]Container, error) {
 	return result, nil
 }
 
-func (json Doc) GetContainer() Container {
-	var ct Container
-	ct.ct = C.GetValue(json.json)
-	ct.doc = json
-	return ct
-}
-
 func (ct Container) GetMember(key string) (Container, error) {
 	cStr := C.CString(key)
 	defer C.free(unsafe.Pointer(cStr))
@@ -244,8 +261,7 @@ func (ct Container) GetPathNewContainer(path string) (Container, error) {
 	}
 
 	for _, key := range addKeys {
-		add := ct.doc.NewContainer()
-		add.InitObj()
+		add := ct.doc.NewContainerObj()
 		err = prev.AddMember(key, add)
 		if err != nil {
 			return prev, err
@@ -410,6 +426,26 @@ func (ct Container) AddMember(key string, item Container) error {
 			return nil
 		}
 	}
+}
+func (ct Container) SetMember(key string, item Container) error {
+    target, err := ct.GetMember(key)
+    if err == nil {
+        target.SetContainer(item)
+    } else if err == ErrNotObject {
+        return err
+    } else if err == ErrPathNotFound {
+        ct.AddMember(key, item)
+    }
+    return nil
+}
+func (ct Container) SetMemberValue(key string, v interface{}) error {
+	item := ct.doc.NewContainer()
+	err := item.SetValue(v)
+	if err != nil {
+		return err
+	}
+
+	return ct.SetMember(key, item)
 }
 func (ct Container) AddMemberAtPath(path string, item Container) error {
 	dest, err := ct.GetPathNewContainer(path)
