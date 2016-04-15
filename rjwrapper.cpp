@@ -5,6 +5,10 @@
 #include <iostream>
 #include <sstream>
 
+// default to using CrtAllocator
+typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
+typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
+
 JsonDoc JsonInit() {
     Document *doc = new Document();
 

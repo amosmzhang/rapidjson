@@ -5,10 +5,6 @@
 extern "C" {
 #endif
 
-    // default to using CrtAllocator
-    typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
-    typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
-
     typedef void* JsonDoc;
     typedef void* JsonVal;
     JsonDoc JsonInit(void);
