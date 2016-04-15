@@ -5,42 +5,46 @@
 #include <iostream>
 #include <sstream>
 
+// default to using CrtAllocator
+typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
+typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
+
 JsonDoc JsonInit() {
-    rapidjson::Document *doc = new rapidjson::Document();
+    Document *doc = new Document();
 
     return (void *)doc;
 }
 
 void JsonFree(JsonDoc json) {
-    rapidjson::Document *doc = (rapidjson::Document *)json;
+    Document *doc = (Document *)json;
 
     delete doc;
 }
 
 JsonVal ValInit() {
-    rapidjson::Value *val = new rapidjson::Value();
+    Value *val = new Value();
 
     return (void *)val;
 }
 
 void ValFree(JsonVal value) {
-    rapidjson::Value *val = (rapidjson::Value *)value;
+    Value *val = (Value *)value;
 
     delete val;
 }
 
 void JsonParse(JsonDoc json, const char *input) {
-    ((rapidjson::Document *)json)->Parse(input);
+    ((Document *)json)->Parse(input);
 }
 
 int HasParseError(JsonDoc json) {
-    return ((rapidjson::Document *)json)->HasParseError();
+    return ((Document *)json)->HasParseError();
 }
 
 JsonVal GetValue(JsonDoc json) {
-    rapidjson::Document *doc = (rapidjson::Document *)json;
+    Document *doc = (Document *)json;
 
-    rapidjson::Value *s = doc;
+    Value *s = doc;
     
     return (void *) s;
 }
@@ -48,56 +52,56 @@ JsonVal GetValue(JsonDoc json) {
 char *GetString(JsonDoc json) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    ((rapidjson::Document *)json)->Accept(writer);
+    ((Document *)json)->Accept(writer);
     char *result = strdup(buffer.GetString());
 
     return result;
 }
 
 int HasMember(JsonVal value, const char *member) {
-    return ((rapidjson::Value *)value)->HasMember(member);
+    return ((Value *)value)->HasMember(member);
 }
 
 int GetMemberCount(JsonVal value) {
-    return ((rapidjson::Value *)value)->MemberCount();
+    return ((Value *)value)->MemberCount();
 }
 
 char * GetMemberName(JsonVal value, int index) {
-    rapidjson::Value::ConstMemberIterator itr = ((rapidjson::Value *)value)->MemberBegin() + index;
+    Value::ConstMemberIterator itr = ((Value *)value)->MemberBegin() + index;
     std::string member = itr->name.GetString();
 
     return strdup(member.c_str());
 }
 
 int GetType(JsonVal value) {
-    return ((rapidjson::Value *)value)->GetType();
+    return ((Value *)value)->GetType();
 }
 int IsObj(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsObject();
+    return ((Value *)value)->IsObject();
 }
 int IsInt(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsInt();
+    return ((Value *)value)->IsInt();
 }
 int IsString(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsString();
+    return ((Value *)value)->IsString();
 }
 int IsDouble(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsDouble();
+    return ((Value *)value)->IsDouble();
 }
 int IsArray(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsArray();
+    return ((Value *)value)->IsArray();
 }
 int IsBool(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsBool();
+    return ((Value *)value)->IsBool();
 }
 int IsNull(JsonVal value) {
-    return ((rapidjson::Value *)value)->IsNull();
+    return ((Value *)value)->IsNull();
 }
 
 JsonVal GetMember(JsonVal value, const char * key) {
-    rapidjson::Value *val = (rapidjson::Value *)value;
+    Value *val = (Value *)value;
 
-    rapidjson::Value& s = (*val)[key];
+    Value& s = (*val)[key];
 
     return (void *) &s;
 }
@@ -105,82 +109,82 @@ JsonVal GetMember(JsonVal value, const char * key) {
 char *ValGetString(JsonVal value) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    ((rapidjson::Value *)value)->Accept(writer);
+    ((Value *)value)->Accept(writer);
     char *result = strdup(buffer.GetString());
 
     return result;
 }
 int ValGetInt(JsonVal value) {
-    return ((rapidjson::Value *)value)->GetInt();
+    return ((Value *)value)->GetInt();
 }
 double ValGetDouble(JsonVal value) {
-    return ((rapidjson::Value *)value)->GetDouble();
+    return ((Value *)value)->GetDouble();
 }
 int ValGetBool(JsonVal value) {
-    return ((rapidjson::Value *)value)->GetBool();
+    return ((Value *)value)->GetBool();
 }
 char * ValGetBasicString(JsonVal value) {
-    return strdup( ((rapidjson::Value *)value)->GetString() );
+    return strdup( ((Value *)value)->GetString() );
 }
 
 int ValArraySize(JsonVal value) {
-    return ((rapidjson::Value *)value)->Size();
+    return ((Value *)value)->Size();
 }
 JsonVal GetArrayValueAt(JsonVal value, int index) {
-    rapidjson::Value::ConstValueIterator itr = ((rapidjson::Value *)value)->Begin() + index;
-    const rapidjson::Value& s = *itr;
+    Value::ConstValueIterator itr = ((Value *)value)->Begin() + index;
+    const Value& s = *itr;
 
     return (void *) &s;
 }
 
 void SetInt(JsonVal value, int num) {
-    ((rapidjson::Value *)value)->SetInt(num);
+    ((Value *)value)->SetInt(num);
 }
 void SetDouble(JsonVal value, double num) {
-    ((rapidjson::Value *)value)->SetDouble(num);
+    ((Value *)value)->SetDouble(num);
 }
 void SetString(JsonDoc json, JsonVal value, const char *str) {
-    rapidjson::Document *doc = (rapidjson::Document *)json;
+    Document *doc = (Document *)json;
     std::string s = strdup(str);
-    ((rapidjson::Value *)value)->SetString(rapidjson::StringRef(s.c_str()), doc->GetAllocator());
+    ((Value *)value)->SetString(rapidjson::StringRef(s.c_str()), doc->GetAllocator());
 }
 void SetBool(JsonVal value, int b) {
-    ((rapidjson::Value *)value)->SetBool((bool)b);
+    ((Value *)value)->SetBool((bool)b);
 }
 void SetNull(JsonVal value) {
-    ((rapidjson::Value *)value)->SetNull();
+    ((Value *)value)->SetNull();
 }
 void SetValue(JsonVal value, JsonVal item) {
-    *((rapidjson::Value *)value) = *((rapidjson::Value *)item);
+    *((Value *)value) = *((Value *)item);
 }
 void InitArray(JsonVal value) {
-    ((rapidjson::Value *)value)->SetArray();
+    ((Value *)value)->SetArray();
 }
 void ArrayAppend(JsonDoc json, JsonVal value, JsonVal v) {
-    rapidjson::Value *val = (rapidjson::Value *)value;
-    rapidjson::Value *item = (rapidjson::Value *)v;
-    rapidjson::Document *doc = (rapidjson::Document *)json;
+    Value *val = (Value *)value;
+    Value *item = (Value *)v;
+    Document *doc = (Document *)json;
 
     val->PushBack(*item, doc->GetAllocator());
 }
 JsonVal InitObj(JsonVal value) {
-    return (void *) &((rapidjson::Value *)value)->SetObject();
+    return (void *) &((Value *)value)->SetObject();
 }
 void AddMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
-    rapidjson::Value *val = (rapidjson::Value *)value;
-    rapidjson::Value *item = (rapidjson::Value *)v;
-    rapidjson::Document *doc = (rapidjson::Document *)json;
-    rapidjson::Value key;
+    Value *val = (Value *)value;
+    Value *item = (Value *)v;
+    Document *doc = (Document *)json;
+    Value key;
     SetString(json, &key, k);
 
     val->AddMember(key, *item, doc->GetAllocator());
 }
 
 void RemoveMember(JsonVal value, const char *k) {
-    ((rapidjson::Value *)value)->RemoveMember(k);
+    ((Value *)value)->RemoveMember(k);
 }
 
 void ArrayRemove(JsonVal value, int index) {
-    rapidjson::Value::ConstValueIterator itr = ((rapidjson::Value *)value)->Begin() + index;
-    ((rapidjson::Value *)value)->Erase(itr);
+    Value::ConstValueIterator itr = ((Value *)value)->Begin() + index;
+    ((Value *)value)->Erase(itr);
 }
