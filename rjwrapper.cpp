@@ -5,10 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-// default to using CrtAllocator
-typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
-typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
-
 JsonDoc JsonInit() {
     Document *doc = new Document();
 
@@ -145,8 +141,7 @@ void SetDouble(JsonVal value, double num) {
 }
 void SetString(JsonDoc json, JsonVal value, const char *str) {
     Document *doc = (Document *)json;
-    std::string s = strdup(str);
-    ((Value *)value)->SetString(rapidjson::StringRef(s.c_str()), doc->GetAllocator());
+    ((Value *)value)->SetString(str, doc->GetAllocator());
 }
 void SetBool(JsonVal value, int b) {
     ((Value *)value)->SetBool((bool)b);
