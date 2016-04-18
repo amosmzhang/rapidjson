@@ -141,6 +141,7 @@ func (json Doc) HasParseError() bool {
 // get string/bytes output
 func (json Doc) String() string {
 	cStr := C.GetString(json.json)
+	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
@@ -213,6 +214,7 @@ func (ct Container) GetMember(key string) (Container, error) {
 }
 func (ct Container) String() string {
 	cStr := C.ValGetString(ct.ct)
+	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
