@@ -5,12 +5,24 @@
 #include <iostream>
 #include <sstream>
 
+int ValCount = 0;
+int DocCount = 0;
+
 // default to using CrtAllocator
 typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
 typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
 
+int GetDocCount() {
+    return DocCount;
+}
+int GetValCount() {
+    return ValCount;
+}
+
 JsonDoc JsonInit() {
     Document *doc = new Document();
+
+    DocCount++;
 
     return (void *)doc;
 }
@@ -18,17 +30,23 @@ JsonDoc JsonInit() {
 void JsonFree(JsonDoc json) {
     Document *doc = (Document *)json;
 
+    DocCount--;
+
     delete doc;
 }
 
 JsonVal ValInit() {
     Value *val = new Value();
 
+    ValCount++;
+
     return (void *)val;
 }
 
 void ValFree(JsonVal value) {
     Value *val = (Value *)value;
+
+    ValCount--;
 
     delete val;
 }

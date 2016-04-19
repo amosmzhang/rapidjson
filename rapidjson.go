@@ -42,7 +42,7 @@ type Doc struct {
 }
 
 type Container struct {
-	doc Doc
+	doc *Doc
 	ct  C.JsonVal
 }
 
@@ -68,39 +68,39 @@ func NewDoc() Doc {
 	json.json = C.JsonInit()
 	return json
 }
-func (json Doc) Free() {
+func (json *Doc) Free() {
     for _, ct := range json.allocated {
         ct.Free()
     }
 	C.JsonFree(json.json)
 }
-func (json Doc) NewContainer() Container {
+func (json *Doc) NewContainer() Container {
 	var ct Container
 	ct.doc = json
 	ct.ct = C.ValInit()
     json.allocated = append(json.allocated, &ct)
 	return ct
 }
-func (json Doc) NewContainerObj() Container {
+func (json *Doc) NewContainerObj() Container {
     ct := json.NewContainer()
     ct.InitObj()
     return ct
 }
-func (json Doc) NewContainerArray() Container {
+func (json *Doc) NewContainerArray() Container {
     ct := json.NewContainer()
     ct.InitArray()
     return ct
 }
-func (ct Container) Free() {
+func (ct *Container) Free() {
 	C.ValFree(ct.ct)
 }
-func (json Doc) GetContainer() Container {
+func (json *Doc) GetContainer() Container {
 	var ct Container
 	ct.ct = C.GetValue(json.json)
 	ct.doc = json
 	return ct
 }
-func (json Doc) GetContainerNewObj() Container {
+func (json *Doc) GetContainerNewObj() Container {
 	var ct Container
 	ct.ct = C.GetValue(json.json)
 	ct.doc = json
@@ -108,12 +108,22 @@ func (json Doc) GetContainerNewObj() Container {
 	return ct
 }
 
+func GetDocCount() int {
+    return int(C.GetDocCount());
+}
+
+func GetCtCount() int {
+    return int(C.GetValCount());
+}
+func (json *Doc) GetAllocated() int {
+    return len(json.allocated);
+}
 
 // parse
-func (json Doc) Parse(input []byte) error {
+func (json *Doc) Parse(input []byte) error {
 	return json.ParseString(string(input))
 }
-func (json Doc) ParseString(input string) error {
+func (json *Doc) ParseString(input string) error {
 	cStr := C.CString(input)
 	defer C.free(unsafe.Pointer(cStr))
 	C.JsonParse(json.json, cStr)
@@ -134,23 +144,23 @@ func NewParsedStringJson(input string) (Doc, error) {
 	err := doc.ParseString(input)
 	return doc, err
 }
-func (json Doc) HasParseError() bool {
+func (json *Doc) HasParseError() bool {
 	return CBoolTest(C.HasParseError(json.json))
 }
 
 // get string/bytes output
-func (json Doc) String() string {
+func (json *Doc) String() string {
 	cStr := C.GetString(json.json)
 	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
-func (json Doc) Bytes() []byte {
+func (json *Doc) Bytes() []byte {
 	return []byte(json.String())
 }
 
 // various getters
-func (ct Container) HasMember(key string) bool {
+func (ct *Container) HasMember(key string) bool {
 	if CBoolTest(C.IsObj(ct.ct)) {
 		cStr := C.CString(key)
 		defer C.free(unsafe.Pointer(cStr))
@@ -159,19 +169,19 @@ func (ct Container) HasMember(key string) bool {
 		return false
 	}
 }
-func (ct Container) GetMemberCount() (int, error) {
+func (ct *Container) GetMemberCount() (int, error) {
 	if CBoolTest(C.IsObj(ct.ct)) {
 		return int(C.GetMemberCount(ct.ct)), nil
 	} else {
 		return 0, ErrNotObject
 	}
 }
-func (ct Container) GetMemberName(index int) string {
+func (ct *Container) GetMemberName(index int) string {
 	cStr := C.GetMemberName(ct.ct, C.int(index))
 	str := C.GoString(cStr)
 	return str
 }
-func (ct Container) GetMemberNames() ([]string, error) {
+func (ct *Container) GetMemberNames() ([]string, error) {
 	count, err := ct.GetMemberCount()
 	result := make([]string, count)
 	if err != nil {
@@ -182,7 +192,7 @@ func (ct Container) GetMemberNames() ([]string, error) {
 	}
 	return result, nil
 }
-func (ct Container) GetMemberMap() (map[string]Container, error) {
+func (ct *Container) GetMemberMap() (map[string]Container, error) {
 	count, err := ct.GetMemberCount()
 	result := make(map[string]Container, count)
 	if err != nil {
@@ -195,7 +205,7 @@ func (ct Container) GetMemberMap() (map[string]Container, error) {
 	return result, nil
 }
 
-func (ct Container) GetMember(key string) (Container, error) {
+func (ct *Container) GetMember(key string) (Container, error) {
 	cStr := C.CString(key)
 	defer C.free(unsafe.Pointer(cStr))
 	if CBoolTest(C.IsObj(ct.ct)) {
@@ -212,13 +222,13 @@ func (ct Container) GetMember(key string) (Container, error) {
 		return m, ErrNotObject
 	}
 }
-func (ct Container) String() string {
+func (ct *Container) String() string {
 	cStr := C.ValGetString(ct.ct)
 	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
-func (ct Container) Bytes() []byte {
+func (ct *Container) Bytes() []byte {
 	return []byte(ct.String())
 }
 
@@ -235,7 +245,7 @@ func (ct Container) GetPathContainer(path string) (Container, error) {
 
 	return next, nil
 }
-func (ct Container) PathExists(path string) bool {
+func (ct *Container) PathExists(path string) bool {
 	_, err := ct.GetPathContainer(path)
 	if err != nil {
 		return false
@@ -281,10 +291,10 @@ func (ct Container) GetPathNewContainer(path string) (Container, error) {
 }
 
 // typed getters
-func (ct Container) GetType() int {
+func (ct *Container) GetType() int {
 	return int(C.GetType(ct.ct))
 }
-func (ct Container) GetInt() (int, error) {
+func (ct *Container) GetInt() (int, error) {
 	if CBoolTest(C.IsInt(ct.ct)) {
 		result := int(C.ValGetInt(ct.ct))
 		return result, nil
@@ -293,7 +303,7 @@ func (ct Container) GetInt() (int, error) {
 		return result, ErrNotInt
 	}
 }
-func (ct Container) GetFloat() (float64, error) {
+func (ct *Container) GetFloat() (float64, error) {
 	if CBoolTest(C.IsDouble(ct.ct)) {
 		result := float64(C.ValGetDouble(ct.ct))
 		return result, nil
@@ -302,7 +312,7 @@ func (ct Container) GetFloat() (float64, error) {
 		return result, ErrNotFloat
 	}
 }
-func (ct Container) GetBool() (bool, error) {
+func (ct *Container) GetBool() (bool, error) {
 	if CBoolTest(C.IsBool(ct.ct)) {
 		result := CBoolTest(C.ValGetBool(ct.ct))
 		return result, nil
@@ -311,7 +321,7 @@ func (ct Container) GetBool() (bool, error) {
 		return result, ErrNotBool
 	}
 }
-func (ct Container) GetString() (string, error) {
+func (ct *Container) GetString() (string, error) {
 	if CBoolTest(C.IsString(ct.ct)) {
 		cStr := C.ValGetBasicString(ct.ct)
 		str := C.GoString(cStr)
@@ -321,7 +331,7 @@ func (ct Container) GetString() (string, error) {
 		return result, ErrNotString
 	}
 }
-func (ct Container) GetArraySize() (int, error) {
+func (ct *Container) GetArraySize() (int, error) {
 	if CBoolTest(C.IsArray(ct.ct)) {
 		size := int(C.ValArraySize(ct.ct))
 		return size, nil
@@ -329,14 +339,14 @@ func (ct Container) GetArraySize() (int, error) {
 		return 0, ErrNotArray
 	}
 }
-func (ct Container) GetArrayValue(index int) Container {
+func (ct *Container) GetArrayValue(index int) Container {
 	var a Container
 	a.doc = ct.doc
 	a.ct = C.GetArrayValueAt(ct.ct, C.int(index))
 	return a
 }
 
-func (ct Container) GetIntArray() ([]int, error) {
+func (ct *Container) GetIntArray() ([]int, error) {
 	count, err := ct.GetArraySize()
 	result := make([]int, count)
 	if err != nil {
@@ -352,7 +362,7 @@ func (ct Container) GetIntArray() ([]int, error) {
 	}
 	return result, nil
 }
-func (ct Container) GetStringArray() ([]string, error) {
+func (ct *Container) GetStringArray() ([]string, error) {
 	count, err := ct.GetArraySize()
 	result := make([]string, count)
 	if err != nil {
@@ -368,7 +378,7 @@ func (ct Container) GetStringArray() ([]string, error) {
 	}
 	return result, nil
 }
-func (ct Container) GetArray() ([]Container, int, error) {
+func (ct *Container) GetArray() ([]Container, int, error) {
 	count, err := ct.GetArraySize()
 	result := make([]Container, count)
 	if err != nil {
@@ -382,7 +392,7 @@ func (ct Container) GetArray() ([]Container, int, error) {
 }
 
 // setters
-func (ct Container) SetValue(v interface{}) error {
+func (ct *Container) SetValue(v interface{}) error {
 	if v == nil {
 		C.SetNull(ct.ct)
 		return nil
@@ -407,13 +417,13 @@ func (ct Container) SetValue(v interface{}) error {
 		return ErrBadType
 	}
 }
-func (ct Container) SetContainer(item Container) {
+func (ct *Container) SetContainer(item Container) {
 	C.SetValue(ct.ct, item.ct)
 }
-func (ct Container) InitObj() {
+func (ct *Container) InitObj() {
 	ct.ct = C.InitObj(ct.ct)
 }
-func (ct Container) AddValue(key string, v interface{}) error {
+func (ct *Container) AddValue(key string, v interface{}) error {
 	item := ct.doc.NewContainer()
 	err := item.SetValue(v)
 	if err != nil {
@@ -422,7 +432,7 @@ func (ct Container) AddValue(key string, v interface{}) error {
 
 	return ct.AddMember(key, item)
 }
-func (ct Container) AddMember(key string, item Container) error {
+func (ct *Container) AddMember(key string, item Container) error {
 	if !CBoolTest(C.IsObj(ct.ct)) {
 		return ErrNotObject
 	} else {
@@ -436,7 +446,7 @@ func (ct Container) AddMember(key string, item Container) error {
 		}
 	}
 }
-func (ct Container) SetMember(key string, item Container) error {
+func (ct *Container) SetMember(key string, item Container) error {
     target, err := ct.GetMember(key)
     if err == nil {
         target.SetContainer(item)
@@ -447,7 +457,7 @@ func (ct Container) SetMember(key string, item Container) error {
     }
     return nil
 }
-func (ct Container) SetMemberValue(key string, v interface{}) error {
+func (ct *Container) SetMemberValue(key string, v interface{}) error {
 	item := ct.doc.NewContainer()
 	err := item.SetValue(v)
 	if err != nil {
@@ -456,7 +466,7 @@ func (ct Container) SetMemberValue(key string, v interface{}) error {
 
 	return ct.SetMember(key, item)
 }
-func (ct Container) AddMemberAtPath(path string, item Container) error {
+func (ct *Container) AddMemberAtPath(path string, item Container) error {
 	dest, err := ct.GetPathNewContainer(path)
 	if err != nil {
 		return err
@@ -464,7 +474,7 @@ func (ct Container) AddMemberAtPath(path string, item Container) error {
 	dest.SetContainer(item)
 	return nil
 }
-func (ct Container) AddValueAtPath(path string, v interface{}) error {
+func (ct *Container) AddValueAtPath(path string, v interface{}) error {
 	dest, err := ct.GetPathNewContainer(path)
 	if err != nil {
 		return err
@@ -475,10 +485,10 @@ func (ct Container) AddValueAtPath(path string, v interface{}) error {
 	return nil
 }
 
-func (ct Container) InitArray() {
+func (ct *Container) InitArray() {
 	C.InitArray(ct.ct)
 }
-func (ct Container) ArrayAppendContainer(item Container) error {
+func (ct *Container) ArrayAppendContainer(item Container) error {
 	if CBoolTest(C.IsArray(ct.ct)) {
 		C.ArrayAppend(ct.doc.json, ct.ct, item.ct)
 		return nil
@@ -486,14 +496,14 @@ func (ct Container) ArrayAppendContainer(item Container) error {
 		return ErrNotArray
 	}
 }
-func (ct Container) ArrayAppend(v interface{}) error {
+func (ct *Container) ArrayAppend(v interface{}) error {
 	item := ct.doc.NewContainer()
 	item.SetValue(v)
 	return ct.ArrayAppendContainer(item)
 }
 
 // deleters
-func (ct Container) RemoveMember(key string) error {
+func (ct *Container) RemoveMember(key string) error {
 	if !CBoolTest(C.IsObj(ct.ct)) {
 		return ErrNotObject
 	} else {
@@ -503,7 +513,7 @@ func (ct Container) RemoveMember(key string) error {
 	}
 	return nil
 }
-func (ct Container) ArrayRemove(index int) error {
+func (ct *Container) ArrayRemove(index int) error {
 	if !CBoolTest(C.IsArray(ct.ct)) {
 		return ErrNotArray
 	} else if int(C.ValArraySize(ct.ct)) <= index {
