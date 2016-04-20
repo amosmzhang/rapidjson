@@ -117,12 +117,12 @@ func (json *Doc) GetContainerNewObj() Container {
 	return ct
 }
 
-func GetDocCount(side int) int {
-	return int(C.GetDocCount(C.int(side)))
+func GetDocCount() int {
+	return int(C.GetDocCount())
 }
 
-func GetCtCount(side int) int {
-	return int(C.GetValCount(C.int(side)))
+func GetCtCount() int {
+	return int(C.GetValCount())
 }
 func (json *Doc) GetAllocated() int {
 	return len(json.allocated)
