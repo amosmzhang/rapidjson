@@ -10,6 +10,7 @@ import "unsafe"
 import (
 	"errors"
 	"strings"
+	"sync"
 )
 
 var (
@@ -24,6 +25,8 @@ var (
 	ErrBadType      = errors.New("Bad type")
 	ErrMemberExists = errors.New("Member already exists")
 	ErrOutOfBounds  = errors.New("Array index out of bounds")
+
+	rjMutex = &sync.Mutex{}
 )
 
 const (
@@ -37,8 +40,8 @@ const (
 )
 
 type Doc struct {
-	json C.JsonDoc
-    allocated []*Container
+	json      C.JsonDoc
+	allocated []*Container
 }
 
 type Container struct {
@@ -64,32 +67,38 @@ func BoolToC(b bool) C.int {
 
 // initialization
 func NewDoc() Doc {
+	rjMutex.Lock()
 	var json Doc
 	json.json = C.JsonInit()
+	rjMutex.Unlock()
 	return json
 }
 func (json *Doc) Free() {
-    for _, ct := range json.allocated {
-        ct.Free()
-    }
+	rjMutex.Lock()
+	for _, ct := range json.allocated {
+		ct.Free()
+	}
 	C.JsonFree(json.json)
+	rjMutex.Unlock()
 }
 func (json *Doc) NewContainer() Container {
+	rjMutex.Lock()
 	var ct Container
 	ct.doc = json
 	ct.ct = C.ValInit()
-    json.allocated = append(json.allocated, &ct)
+	json.allocated = append(json.allocated, &ct)
+	rjMutex.Unlock()
 	return ct
 }
 func (json *Doc) NewContainerObj() Container {
-    ct := json.NewContainer()
-    ct.InitObj()
-    return ct
+	ct := json.NewContainer()
+	ct.InitObj()
+	return ct
 }
 func (json *Doc) NewContainerArray() Container {
-    ct := json.NewContainer()
-    ct.InitArray()
-    return ct
+	ct := json.NewContainer()
+	ct.InitArray()
+	return ct
 }
 func (ct *Container) Free() {
 	C.ValFree(ct.ct)
@@ -104,19 +113,19 @@ func (json *Doc) GetContainerNewObj() Container {
 	var ct Container
 	ct.ct = C.GetValue(json.json)
 	ct.doc = json
-    ct.InitObj()
+	ct.InitObj()
 	return ct
 }
 
-func GetDocCount() int {
-    return int(C.GetDocCount());
+func GetDocCount(side int) int {
+	return int(C.GetDocCount(C.int(side)))
 }
 
-func GetCtCount() int {
-    return int(C.GetValCount());
+func GetCtCount(side int) int {
+	return int(C.GetValCount(C.int(side)))
 }
 func (json *Doc) GetAllocated() int {
-    return len(json.allocated);
+	return len(json.allocated)
 }
 
 // parse
@@ -410,7 +419,7 @@ func (ct *Container) SetValue(v interface{}) error {
 		return nil
 	case string:
 		cStr := C.CString(v.(string))
-	    defer C.free(unsafe.Pointer(cStr))
+		defer C.free(unsafe.Pointer(cStr))
 		C.SetString(ct.doc.json, ct.ct, cStr)
 		return nil
 	default:
@@ -437,7 +446,7 @@ func (ct *Container) AddMember(key string, item Container) error {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
-	    defer C.free(unsafe.Pointer(cStr))
+		defer C.free(unsafe.Pointer(cStr))
 		if CBoolTest(C.HasMember(ct.ct, cStr)) {
 			return ErrMemberExists
 		} else {
@@ -447,15 +456,15 @@ func (ct *Container) AddMember(key string, item Container) error {
 	}
 }
 func (ct *Container) SetMember(key string, item Container) error {
-    target, err := ct.GetMember(key)
-    if err == nil {
-        target.SetContainer(item)
-    } else if err == ErrNotObject {
-        return err
-    } else if err == ErrPathNotFound {
-        ct.AddMember(key, item)
-    }
-    return nil
+	target, err := ct.GetMember(key)
+	if err == nil {
+		target.SetContainer(item)
+	} else if err == ErrNotObject {
+		return err
+	} else if err == ErrPathNotFound {
+		ct.AddMember(key, item)
+	}
+	return nil
 }
 func (ct *Container) SetMemberValue(key string, v interface{}) error {
 	item := ct.doc.NewContainer()
@@ -508,7 +517,7 @@ func (ct *Container) RemoveMember(key string) error {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
-	    defer C.free(unsafe.Pointer(cStr))
+		defer C.free(unsafe.Pointer(cStr))
 		C.RemoveMember(ct.ct, cStr)
 	}
 	return nil

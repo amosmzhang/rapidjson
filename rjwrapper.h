@@ -7,7 +7,6 @@ extern "C" {
 
     int GetDocCount();
     int GetValCount();
-    void SetExpire(int);
 
     typedef void* JsonDoc;
     typedef void* JsonVal;
