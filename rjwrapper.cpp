@@ -4,13 +4,32 @@
 #include "rjwrapper.h"
 #include <iostream>
 #include <sstream>
+#include <ctime>
+#include <vector>
 
 int ValCount = 0;
 int DocCount = 0;
+int expire = 120;
+
+void SetExpire(int secs) {
+    expire = secs;
+}
 
 // default to using CrtAllocator
 typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
 typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
+
+struct DocTimer {
+    Document *doc;
+    time_t ts;
+};
+struct ValTimer {
+    Value *val;
+    time_t ts;
+};
+
+std::vector<DocTimer> knownDocs;
+std::vector<ValTimer> knownVals;
 
 int GetDocCount() {
     return DocCount;
@@ -24,15 +43,42 @@ JsonDoc JsonInit() {
 
     DocCount++;
 
+    DocTimer timer;
+    timer.doc = doc;
+    timer.ts = time(0);
+    knownDocs.push_back(timer);
+
     return (void *)doc;
 }
 
 void JsonFree(JsonDoc json) {
     Document *doc = (Document *)json;
+    std::vector<DocTimer> remainder;
 
-    DocCount--;
+    for (auto const& timer: knownDocs) {
+        if (timer.doc == doc) {
+            try {
+                delete doc;
+                DocCount--;
+            } catch(...) {
+                std::cout << "rjwrapper delete doc error" << std::endl;
+            }
+        } else if (timer.ts < time(0) - expire) {
+            try {
+                delete timer.doc;
+                DocCount--;
+            } catch(...) {
+                std::cout << "rjwrapper delete doc error" << std::endl;
+            }
+        } else {
+            remainder.push_back(timer);
+        }
+    }
 
-    delete doc;
+    knownDocs = remainder;
+
+    //DocCount--;
+    //delete doc;
 }
 
 JsonVal ValInit() {
@@ -40,15 +86,39 @@ JsonVal ValInit() {
 
     ValCount++;
 
+    ValTimer timer;
+    timer.val = val;
+    timer.ts = time(0);
+    knownVals.push_back(timer);
+
     return (void *)val;
 }
 
 void ValFree(JsonVal value) {
     Value *val = (Value *)value;
+    std::vector<ValTimer> remainder;
 
-    ValCount--;
+    for (auto const& timer: knownVals) {
+        if (timer.val == val) {
+            try {
+                delete val;
+                ValCount--;
+            } catch(...) {
+                std::cout << "rjwrapper delete val error" << std::endl;
+            }
+        } else if (timer.ts < time(0) - expire) {
+            try {
+                delete timer.val;
+                ValCount--;
+            } catch(...) {
+                std::cout << "rjwrapper delete val error" << std::endl;
+            }
+        } else {
+            remainder.push_back(timer);
+        }
+    }
 
-    delete val;
+    knownVals = remainder;
 }
 
 void JsonParse(JsonDoc json, const char *input) {
