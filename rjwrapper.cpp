@@ -28,8 +28,10 @@ struct ValTimer {
     time_t ts;
 };
 
-std::vector<DocTimer> knownDocs;
-std::vector<ValTimer> knownVals;
+typedef std::vector<DocTimer> DocTimerVector;
+typedef std::vector<ValTimer> ValTimerVector;
+DocTimerVector knownDocs;
+ValTimerVector knownVals;
 
 int GetDocCount() {
     return DocCount;
@@ -53,25 +55,25 @@ JsonDoc JsonInit() {
 
 void JsonFree(JsonDoc json) {
     Document *doc = (Document *)json;
-    std::vector<DocTimer> remainder;
+    DocTimerVector remainder;
 
-    for (auto const& timer: knownDocs) {
-        if (timer.doc == doc) {
+    for (int i = 0, size = knownDocs.size(); i < size; i++) {
+        if (knownDocs[i].doc == doc) {
             try {
                 delete doc;
                 DocCount--;
             } catch(...) {
                 std::cout << "rjwrapper delete doc error" << std::endl;
             }
-        } else if (timer.ts < time(0) - expire) {
+        } else if (knownDocs[i].ts < time(0) - expire) {
             try {
-                delete timer.doc;
+                delete knownDocs[i].doc;
                 DocCount--;
             } catch(...) {
-                std::cout << "rjwrapper delete doc error" << std::endl;
+                std::cout << "rjwrapper expire doc error" << std::endl;
             }
         } else {
-            remainder.push_back(timer);
+            remainder.push_back(knownDocs[i]);
         }
     }
 
@@ -96,25 +98,25 @@ JsonVal ValInit() {
 
 void ValFree(JsonVal value) {
     Value *val = (Value *)value;
-    std::vector<ValTimer> remainder;
+    ValTimerVector remainder;
 
-    for (auto const& timer: knownVals) {
-        if (timer.val == val) {
+    for (int i = 0, size = knownVals.size(); i < size; i++) {
+        if (knownVals[i].val == val) {
             try {
                 delete val;
                 ValCount--;
             } catch(...) {
                 std::cout << "rjwrapper delete val error" << std::endl;
             }
-        } else if (timer.ts < time(0) - expire) {
+        } else if (knownVals[i].ts < time(0) - expire) {
             try {
-                delete timer.val;
+                delete knownVals[i].val;
                 ValCount--;
             } catch(...) {
-                std::cout << "rjwrapper delete val error" << std::endl;
+                std::cout << "rjwrapper expire val error" << std::endl;
             }
         } else {
-            remainder.push_back(timer);
+            remainder.push_back(knownVals[i]);
         }
     }
 
