@@ -9,7 +9,7 @@ int ValCount = 0;
 int DocCount = 0;
 
 // default to using CrtAllocator
-typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
+typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::CrtAllocator> Document;
 typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Value;
 
 int GetDocCount() {
@@ -51,7 +51,7 @@ void ValFree(JsonVal value) {
     delete val;
 }
 
-void JsonParse(JsonDoc json, const char *input) {
+void JsonParse(JsonDoc json, char *input) {
     ((Document *)json)->Parse(input);
 }
 

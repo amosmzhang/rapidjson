@@ -15,7 +15,7 @@ extern "C" {
     JsonVal ValInit(void);
     void ValFree(JsonVal);
 
-    void JsonParse(JsonDoc, const char *);
+    void JsonParse(JsonDoc, char *);
     int HasParseError(JsonDoc);
     JsonVal GetValue(JsonDoc);
 
