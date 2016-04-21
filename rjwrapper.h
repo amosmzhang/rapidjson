@@ -52,7 +52,8 @@ extern "C" {
     void InitArray(JsonVal);
     void ArrayAppend(JsonDoc, JsonVal, JsonVal);
     JsonVal InitObj(JsonVal);
-    void AddMember(JsonDoc, JsonVal, const char *, JsonVal);
+    void AddMember(JsonDoc, JsonVal, JsonVal, JsonVal);
+    void AddStrMember(JsonDoc, JsonVal, const char *, JsonVal);
 
     void RemoveMember(JsonVal, const char *);
     void ArrayRemove(JsonVal, int);

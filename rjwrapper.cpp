@@ -187,7 +187,15 @@ void ArrayAppend(JsonDoc json, JsonVal value, JsonVal v) {
 JsonVal InitObj(JsonVal value) {
     return (void *) &((Value *)value)->SetObject();
 }
-void AddMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
+void AddMember(JsonDoc json, JsonVal value, JsonVal k, JsonVal v) {
+    Value *val = (Value *)value;
+    Value *item = (Value *)v;
+    Document *doc = (Document *)json;
+    Value *key = (Value *)k;
+
+    val->AddMember(*key, *item, doc->GetAllocator());
+}
+void AddStrMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
     Value *val = (Value *)value;
     Value *item = (Value *)v;
     Document *doc = (Document *)json;
@@ -196,7 +204,6 @@ void AddMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
 
     val->AddMember(key, *item, doc->GetAllocator());
 }
-
 void RemoveMember(JsonVal value, const char *k) {
     ((Value *)value)->RemoveMember(k);
 }

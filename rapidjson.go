@@ -438,7 +438,6 @@ func (ct *Container) AddValue(key string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return ct.AddMember(key, item)
 }
 func (ct *Container) AddMember(key string, item Container) error {
@@ -450,7 +449,12 @@ func (ct *Container) AddMember(key string, item Container) error {
 		if CBoolTest(C.HasMember(ct.ct, cStr)) {
 			return ErrMemberExists
 		} else {
-			C.AddMember(ct.doc.json, ct.ct, cStr, item.ct)
+            k := ct.doc.NewContainer()
+            err := k.SetValue(key)
+            if err != nil {
+                return err
+            }
+			C.AddMember(ct.doc.json, ct.ct, k.ct, item.ct)
 			return nil
 		}
 	}
