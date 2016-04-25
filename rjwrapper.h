@@ -5,9 +5,6 @@
 extern "C" {
 #endif
 
-    int GetDocCount();
-    int GetValCount();
-
     typedef void* JsonDoc;
     typedef void* JsonVal;
     JsonDoc JsonInit(void);
@@ -17,7 +14,6 @@ extern "C" {
 
     void JsonParse(JsonDoc, char *);
     int HasParseError(JsonDoc);
-    JsonVal GetValue(JsonDoc);
 
     char *GetString(JsonDoc);
 

@@ -10,7 +10,6 @@ import "unsafe"
 import (
 	"errors"
 	"strings"
-	"sync"
 )
 
 var (
@@ -25,8 +24,6 @@ var (
 	ErrBadType      = errors.New("Bad type")
 	ErrMemberExists = errors.New("Member already exists")
 	ErrOutOfBounds  = errors.New("Array index out of bounds")
-
-	rjMutex = &sync.Mutex{}
 )
 
 const (
@@ -67,27 +64,21 @@ func BoolToC(b bool) C.int {
 
 // initialization
 func NewDoc() Doc {
-	rjMutex.Lock()
 	var json Doc
 	json.json = C.JsonInit()
-	rjMutex.Unlock()
 	return json
 }
 func (json *Doc) Free() {
-	rjMutex.Lock()
 	for _, ct := range json.allocated {
 		ct.Free()
 	}
 	C.JsonFree(unsafe.Pointer(json.json))
-	rjMutex.Unlock()
 }
 func (json *Doc) NewContainer() *Container {
-	rjMutex.Lock()
 	var ct Container
 	ct.doc = json
 	ct.ct = C.ValInit()
 	json.allocated = append(json.allocated, &ct)
-	rjMutex.Unlock()
 	return &ct
 }
 func (json *Doc) NewContainerObj() *Container {
@@ -105,27 +96,18 @@ func (ct *Container) Free() {
 }
 func (json *Doc) GetContainer() *Container {
 	var ct Container
-	//ct.ct = C.GetValue(unsafe.Pointer(json.json))
 	ct.ct = C.JsonVal(unsafe.Pointer(json.json))
 	ct.doc = json
 	return &ct
 }
 func (json *Doc) GetContainerNewObj() *Container {
 	var ct Container
-	//ct.ct = C.GetValue(unsafe.Pointer(json.json))
 	ct.ct = C.JsonVal(unsafe.Pointer(json.json))
 	ct.doc = json
 	ct.InitObj()
 	return &ct
 }
 
-func GetDocCount() int {
-	return int(C.GetDocCount())
-}
-
-func GetCtCount() int {
-	return int(C.GetValCount())
-}
 func (json *Doc) GetAllocated() int {
 	return len(json.allocated)
 }
