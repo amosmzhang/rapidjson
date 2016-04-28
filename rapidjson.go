@@ -107,6 +107,15 @@ func (json *Doc) GetContainerNewObj() *Container {
 	ct.InitObj()
 	return &ct
 }
+func (ct *Container) GetCopy() *Container {
+    ctStr := ct.String()
+    copyDoc, _ := NewParsedStringJson(ctStr)
+
+    ctCopy := copyDoc.GetContainer()
+
+    ct.doc.allocated = append(ct.doc.allocated, ctCopy)
+    return ctCopy
+}
 
 func (json *Doc) GetAllocated() int {
 	return len(json.allocated)
