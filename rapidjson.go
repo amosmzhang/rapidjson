@@ -36,9 +36,13 @@ const (
 	TypeNumber int = 6
 )
 
+type RJCommon interface {
+    Free()
+}
+
 type Doc struct {
 	json      C.JsonDoc
-	allocated []*Container
+	allocated []RJCommon
 }
 
 type Container struct {
@@ -113,7 +117,7 @@ func (ct *Container) GetCopy() *Container {
 
     ctCopy := copyDoc.GetContainer()
 
-    ct.doc.allocated = append(ct.doc.allocated, ctCopy)
+    ct.doc.allocated = append(ct.doc.allocated, &copyDoc)
     return ctCopy
 }
 
