@@ -116,8 +116,6 @@ func (ct *Container) GetCopy() *Container {
     copyDoc, _ := NewParsedStringJson(ctStr)
 
     ctCopy := copyDoc.GetContainer()
-
-    ct.doc.allocated = append(ct.doc.allocated, &copyDoc)
     return ctCopy
 }
 
@@ -502,6 +500,16 @@ func (ct *Container) ArrayAppendContainer(item *Container) error {
 	} else {
 		return ErrNotArray
 	}
+}
+func (ct *Container) ArrayAppendCopy(item *Container) error {
+    if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+        itemCopy := item.GetCopy()
+        ct.doc.allocated = append(ct.doc.allocated, itemCopy.doc)
+		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(itemCopy.ct))
+		return nil
+    } else {
+        return ErrNotArray
+    }
 }
 func (ct *Container) ArrayAppend(v interface{}) error {
 	item := ct.doc.NewContainer()
