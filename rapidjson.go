@@ -82,7 +82,7 @@ func (json *Doc) NewContainer() *Container {
 	var ct Container
 	ct.doc = json
 	ct.ct = C.ValInit()
-	json.allocated = append(json.allocated, &ct)
+	json.allocated = append([]RJCommon{&ct}, json.allocated...)
 	return &ct
 }
 func (json *Doc) NewContainerObj() *Container {
