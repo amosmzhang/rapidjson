@@ -451,6 +451,25 @@ func (ct *Container) AddMember(key string, item *Container) error {
 		}
 	}
 }
+func (ct *Container) AddMemberArray(key string, items []*Container) error {
+    if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+        return ErrNotObject
+    } else {
+        cStr := C.CString(key)
+		defer C.free(unsafe.Pointer(cStr))
+		if CBoolTest(C.HasMember(unsafe.Pointer(ct.ct), cStr)) {
+			return ErrMemberExists
+		} else {
+            array := ct.doc.NewContainerArray()
+            for _, item := range items {
+                array.ArrayAppendContainer(item)
+            }
+			C.AddStrMember(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), cStr, unsafe.Pointer(array.ct))
+			return nil
+		}
+
+    }
+}
 func (ct *Container) SetMember(key string, item *Container) error {
 	target, err := ct.GetMember(key)
 	if err == nil {
