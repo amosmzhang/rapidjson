@@ -182,6 +182,7 @@ func (ct *Container) GetMemberCount() (int, error) {
 }
 func (ct *Container) GetMemberName(index int) string {
 	cStr := C.GetMemberName(unsafe.Pointer(ct.ct), C.int(index))
+	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
