@@ -37,7 +37,7 @@ const (
 )
 
 type RJCommon interface {
-    Free()
+	Free()
 }
 
 type Doc struct {
@@ -112,11 +112,11 @@ func (json *Doc) GetContainerNewObj() *Container {
 	return &ct
 }
 func (ct *Container) GetCopy() *Container {
-    ctStr := ct.String()
-    copyDoc, _ := NewParsedStringJson(ctStr)
+	ctStr := ct.String()
+	copyDoc, _ := NewParsedStringJson(ctStr)
 
-    ctCopy := copyDoc.GetContainer()
-    return ctCopy
+	ctCopy := copyDoc.GetContainer()
+	return ctCopy
 }
 
 func (json *Doc) GetAllocated() int {
@@ -453,23 +453,23 @@ func (ct *Container) AddMember(key string, item *Container) error {
 	}
 }
 func (ct *Container) AddMemberArray(key string, items []*Container) error {
-    if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
-        return ErrNotObject
-    } else {
-        cStr := C.CString(key)
+	if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+		return ErrNotObject
+	} else {
+		cStr := C.CString(key)
 		defer C.free(unsafe.Pointer(cStr))
 		if CBoolTest(C.HasMember(unsafe.Pointer(ct.ct), cStr)) {
 			return ErrMemberExists
 		} else {
-            array := ct.doc.NewContainerArray()
-            for _, item := range items {
-                array.ArrayAppendContainer(item)
-            }
+			array := ct.doc.NewContainerArray()
+			for _, item := range items {
+				array.ArrayAppendContainer(item)
+			}
 			C.AddStrMember(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), cStr, unsafe.Pointer(array.ct))
 			return nil
 		}
 
-    }
+	}
 }
 func (ct *Container) SetMember(key string, item *Container) error {
 	target, err := ct.GetMember(key)
@@ -522,14 +522,14 @@ func (ct *Container) ArrayAppendContainer(item *Container) error {
 	}
 }
 func (ct *Container) ArrayAppendCopy(item *Container) error {
-    if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
-        itemCopy := item.GetCopy()
-        ct.doc.allocated = append(ct.doc.allocated, itemCopy.doc)
+	if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+		itemCopy := item.GetCopy()
+		ct.doc.allocated = append(ct.doc.allocated, itemCopy.doc)
 		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(itemCopy.ct))
 		return nil
-    } else {
-        return ErrNotArray
-    }
+	} else {
+		return ErrNotArray
+	}
 }
 func (ct *Container) ArrayAppend(v interface{}) error {
 	item := ct.doc.NewContainer()
