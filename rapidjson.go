@@ -388,11 +388,14 @@ func (ct *Container) GetArray() ([]*Container, int, error) {
 	count, err := ct.GetArraySize()
 	result := make([]*Container, count)
 	if err != nil {
-		return result, 0, err
+		return result, TypeNull, err
 	}
 
 	for i := 0; i < count; i++ {
 		result[i] = ct.GetArrayValue(i)
+	}
+	if count == 0 {
+		return result, TypeNull, nil
 	}
 	return result, result[0].GetType(), nil
 }
