@@ -4,6 +4,7 @@
 #include "rjwrapper.h"
 #include <iostream>
 #include <sstream>
+#include <stdint.h>
 
 // default to using CrtAllocator
 typedef rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> Document;
@@ -74,6 +75,9 @@ int IsObj(JsonVal value) {
 int IsInt(JsonVal value) {
     return ((Value *)value)->IsInt();
 }
+int IsInt64(JsonVal value) {
+    return ((Value *)value)->IsInt64();
+}
 int IsString(JsonVal value) {
     return ((Value *)value)->IsString();
 }
@@ -109,6 +113,9 @@ char *ValGetString(JsonVal value) {
 int ValGetInt(JsonVal value) {
     return ((Value *)value)->GetInt();
 }
+int64_t ValGetInt64(JsonVal value) {
+    return ((Value *)value)->GetInt64();
+}
 double ValGetDouble(JsonVal value) {
     return ((Value *)value)->GetDouble();
 }
@@ -131,6 +138,9 @@ JsonVal GetArrayValueAt(JsonVal value, int index) {
 
 void SetInt(JsonVal value, int num) {
     ((Value *)value)->SetInt(num);
+}
+void SetInt64(JsonVal value, int64_t num) {
+    ((Value *)value)->SetInt64(num);
 }
 void SetDouble(JsonVal value, double num) {
     ((Value *)value)->SetDouble(num);

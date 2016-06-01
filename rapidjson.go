@@ -308,6 +308,15 @@ func (ct *Container) GetInt() (int, error) {
 		return result, ErrNotInt
 	}
 }
+func (ct *Container) GetInt64() (int64, error) {
+	if CBoolTest(C.IsInt64(unsafe.Pointer(ct.ct))) {
+		result := int64(C.ValGetInt64(unsafe.Pointer(ct.ct)))
+		return result, nil
+	} else {
+		var result int64
+		return result, ErrNotInt
+	}
+}
 func (ct *Container) GetFloat() (float64, error) {
 	if CBoolTest(C.IsDouble(unsafe.Pointer(ct.ct))) {
 		result := float64(C.ValGetDouble(unsafe.Pointer(ct.ct)))
@@ -408,8 +417,20 @@ func (ct *Container) SetValue(v interface{}) error {
 	}
 
 	switch v.(type) {
+	case int64:
+		C.SetInt64(unsafe.Pointer(ct.ct), C.int64_t(v.(int64)))
+		return nil
+	case int32:
+		C.SetInt64(unsafe.Pointer(ct.ct), C.int64_t(v.(int32)))
+		return nil
 	case int:
-		C.SetInt(unsafe.Pointer(ct.ct), C.int(v.(int)))
+		C.SetInt64(unsafe.Pointer(ct.ct), C.int64_t(v.(int)))
+		return nil
+	case int16:
+		C.SetInt(unsafe.Pointer(ct.ct), C.int(v.(int16)))
+		return nil
+	case int8:
+		C.SetInt(unsafe.Pointer(ct.ct), C.int(v.(int8)))
 		return nil
 	case float64:
 		C.SetDouble(unsafe.Pointer(ct.ct), C.double(v.(float64)))
