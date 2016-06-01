@@ -5,11 +5,10 @@ package rapidjson
 // #include <stdlib.h>
 // #include "rjwrapper.h"
 import "C"
-import "unsafe"
-
 import (
 	"errors"
 	"strings"
+	"unsafe"
 )
 
 var (
@@ -18,6 +17,7 @@ var (
 	ErrNotObject    = errors.New("Not an object")
 	ErrPathNotFound = errors.New("Path not found")
 	ErrNotInt       = errors.New("Not an int")
+	ErrNotInt64     = errors.New("Not an int64")
 	ErrNotFloat     = errors.New("Not a float")
 	ErrNotBool      = errors.New("Not a bool")
 	ErrNotString    = errors.New("Not a string")
@@ -308,6 +308,15 @@ func (ct *Container) GetInt() (int, error) {
 		return result, ErrNotInt
 	}
 }
+func (ct *Container) GetInt64() (int64, error) {
+	if CBoolTest(C.IsInt64(unsafe.Pointer(ct.ct))) {
+		result := int64(C.ValGetInt64(unsafe.Pointer(ct.ct)))
+		return result, nil
+	} else {
+		var result int64
+		return result, ErrNotInt64
+	}
+}
 func (ct *Container) GetFloat() (float64, error) {
 	if CBoolTest(C.IsDouble(unsafe.Pointer(ct.ct))) {
 		result := float64(C.ValGetDouble(unsafe.Pointer(ct.ct)))
@@ -410,6 +419,9 @@ func (ct *Container) SetValue(v interface{}) error {
 	switch v.(type) {
 	case int:
 		C.SetInt(unsafe.Pointer(ct.ct), C.int(v.(int)))
+		return nil
+	case int64:
+		C.SetInt64(unsafe.Pointer(ct.ct), C.int64_t(v.(int64)))
 		return nil
 	case float64:
 		C.SetDouble(unsafe.Pointer(ct.ct), C.double(v.(float64)))
