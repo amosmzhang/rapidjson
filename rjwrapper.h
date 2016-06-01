@@ -25,6 +25,7 @@ extern "C" {
     int GetType(JsonVal);
     int IsObj(JsonVal);
     int IsInt(JsonVal);
+    int IsInt64(JsonVal);
     int IsDouble(JsonVal);
     int IsBool(JsonVal);
     int IsString(JsonVal);
@@ -32,6 +33,7 @@ extern "C" {
     int IsNull(JsonVal);
     char *ValGetString(JsonVal);
     int ValGetInt(JsonVal);
+    int64_t ValGetInt64(JsonVal);
     double ValGetDouble(JsonVal);
     int ValGetBool(JsonVal);
     char *ValGetBasicString(JsonVal);
@@ -40,6 +42,7 @@ extern "C" {
     JsonVal GetArrayValueAt(JsonVal, int);
 
     void SetInt(JsonVal, int);
+    void SetInt64(JsonVal, int64_t);
     void SetDouble(JsonVal, double);
     void SetString(JsonDoc, JsonVal, const char *);
     void SetBool(JsonVal, int);
