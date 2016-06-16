@@ -10,7 +10,7 @@ In package main:
     ...
     json, err := rapidjson.NewParsedStringJson(`{"project":"rapidjson","stars":10,"use":"everywhere"}`)
     ...
-    fmt.Prinln(json.String())
+    fmt.Println(json.String())
 
 # Key concepts
 
@@ -56,6 +56,7 @@ Typed getters:
 
     func (ct *Container) GetType() int
     func (ct *Container) GetInt() (int, error)
+    func (ct *Container) GetInt64() (int64, error)
     func (ct *Container) GetFloat() (float64, error)
     func (ct *Container) GetBool() (bool, error)
     func (ct *Container) GetString() (string, error)
@@ -80,6 +81,7 @@ SetValue() can be used for basic types int, float64, bool, string, null. Setters
     func (ct *Container) InitObj()
     func (ct *Container) AddValue(key string, v interface{}) error
     func (ct *Container) AddMember(key string, item *Container) error
+    func (ct *Container) AddMemberArray(key string, items []*Container) error
     func (ct *Container) AddMemberAtPath(path string, item *Container) error
     func (ct *Container) AddValueAtPath(path string, v interface{}) error
     func (ct *Container) SetMember(key string, item *Container) error
