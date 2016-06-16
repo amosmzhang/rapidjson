@@ -66,7 +66,7 @@ Typed getters:
     func (ct *Container) GetStringArray() ([]string, error)
     func (ct *Container) GetArray() ([]*Container, int, error)
 
-Making new Container, use root Doc to use memory allocator:
+Making new Container, use root Doc to use memory allocator. Freeing Doc will free associated Containers:
 
     func (json *Doc) NewContainer() *Container
     func (json *Doc) NewContainerObj() *Container
@@ -74,7 +74,7 @@ Making new Container, use root Doc to use memory allocator:
 
 # Setters
 
-SetValue() can be used for basic types int, float64, bool, string, null. Setters will overwrite previous type.
+SetValue() can be used for basic types int (all sizes), float64, bool, string, nil. Setters will overwrite previous type.
 
     func (ct *Container) SetValue(v interface{}) error
     func (ct *Container) SetContainer(item *Container)
