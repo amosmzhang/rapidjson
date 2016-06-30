@@ -14,7 +14,7 @@ In package main:
 
 # Key concepts
 
-rapidjson has two types: Container and Doc. Container is a generalized value type, and can take on any specific type (int, array, object, etc.). Doc is a specialized Container with additional parsing and memory allocation functionality. In general, create one Doc, get its Container, and work with that Container. Doc is a pointer to C land, and should be freed manually. Key values pairs in rapidjson objects are referred to as members.
+rapidjson has two types: Container and Doc. Container is a generalized value type, and can take on any specific type (int, array, object, etc.). Doc is a specialized Container with additional parsing and memory allocation functionality. In general, create one Doc, get its Container, and work with that Container. Doc should be freed manually, but Containers associated with a Doc will be freed when Doc is freed. Key values pairs in rapidjson objects are referred to as members.
 
 # Parsing
 
@@ -49,7 +49,6 @@ Working with Containers:
     func (ct *Container) GetMemberMap() (map[string]*Container, error) 
     func (ct *Container) GetMember(key string) (*Container, error)
     func (ct *Container) GetPathContainer(path string) (*Container, error)
-    func (ct *Container) PathExists(path string) bool
     func (ct *Container) GetPathNewContainer(path string) (*Container, error)
 
 Typed getters:
@@ -91,6 +90,23 @@ SetValue() can be used for basic types int (all sizes), float64, bool, string, n
     func (ct *Container) ArrayAppendCopy(item *Container) error
     func (ct *Container) ArrayAppend(v interface{}) error
 
+# Errorless
+
+This set of functions duplicate functionality in some previous functions, but do not return errors so that they can be chained.
+
+    func (ct *Container) GetMemberCountOrNil() int
+    func (ct *Container) GetMemberNamesOrNil() []string
+    func (ct *Container) GetMemberMapOrNil() map[string]*Container
+    func (ct *Container) GetMemberOrNil(key string) *Container
+    func (ct *Container) GetPathContainerOrNil(path string) *Container
+    func (ct *Container) GetIntArrayOrNil() []int
+    func (ct *Container) GetStringOrNil() []string
+    func (ct *Container) GetArrayOrNil() []*Container
+
+Usage example:
+
+    example, err := container.GetMemberOrNil("path1").GetMemberOrNil("path2").GetString()
+
 # Removes
 
     func (ct *Container) RemoveMember(key string) error
@@ -119,3 +135,4 @@ SetValue() can be used for basic types int (all sizes), float64, bool, string, n
 	ErrBadType      - Bad type
 	ErrMemberExists - Member already exists
 	ErrOutOfBounds  - Array index out of bounds
+

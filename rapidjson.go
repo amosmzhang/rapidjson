@@ -67,10 +67,10 @@ func BoolToC(b bool) C.int {
 }
 
 // initialization
-func NewDoc() Doc {
+func NewDoc() *Doc {
 	var json Doc
 	json.json = C.JsonInit()
-	return json
+	return &json
 }
 func (json *Doc) Free() {
 	for _, ct := range json.allocated {
@@ -96,7 +96,9 @@ func (json *Doc) NewContainerArray() *Container {
 	return ct
 }
 func (ct *Container) Free() {
-	C.ValFree(unsafe.Pointer(ct.ct))
+	if ct != nil {
+		C.ValFree(unsafe.Pointer(ct.ct))
+	}
 }
 func (json *Doc) GetContainer() *Container {
 	var ct Container
@@ -112,6 +114,9 @@ func (json *Doc) GetContainerNewObj() *Container {
 	return &ct
 }
 func (ct *Container) GetCopy() *Container {
+	if ct == nil {
+		return nil
+	}
 	ctStr := ct.String()
 	copyDoc, _ := NewParsedStringJson(ctStr)
 
@@ -138,12 +143,12 @@ func (json *Doc) ParseString(input string) error {
 		return nil
 	}
 }
-func NewParsedJson(input []byte) (Doc, error) {
+func NewParsedJson(input []byte) (*Doc, error) {
 	doc := NewDoc()
 	err := doc.Parse(input)
 	return doc, err
 }
-func NewParsedStringJson(input string) (Doc, error) {
+func NewParsedStringJson(input string) (*Doc, error) {
 	doc := NewDoc()
 	err := doc.ParseString(input)
 	return doc, err
@@ -165,7 +170,9 @@ func (json *Doc) Bytes() []byte {
 
 // various getters
 func (ct *Container) HasMember(key string) bool {
-	if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return false
+	} else if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
 		cStr := C.CString(key)
 		defer C.free(unsafe.Pointer(cStr))
 		return CBoolTest(C.HasMember(unsafe.Pointer(ct.ct), cStr))
@@ -174,19 +181,27 @@ func (ct *Container) HasMember(key string) bool {
 	}
 }
 func (ct *Container) GetMemberCount() (int, error) {
-	if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return 0, ErrNotObject
+	} else if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
 		return int(C.GetMemberCount(unsafe.Pointer(ct.ct))), nil
 	} else {
 		return 0, ErrNotObject
 	}
 }
 func (ct *Container) GetMemberName(index int) string {
+	if ct == nil {
+		return ""
+	}
 	cStr := C.GetMemberName(unsafe.Pointer(ct.ct), C.int(index))
 	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
 func (ct *Container) GetMemberNames() ([]string, error) {
+	if ct == nil {
+		return make([]string, 0), ErrPathNotFound
+	}
 	count, err := ct.GetMemberCount()
 	result := make([]string, count)
 	if err != nil {
@@ -198,6 +213,9 @@ func (ct *Container) GetMemberNames() ([]string, error) {
 	return result, nil
 }
 func (ct *Container) GetMemberMap() (map[string]*Container, error) {
+	if ct == nil {
+		return make(map[string]*Container, 0), ErrPathNotFound
+	}
 	count, err := ct.GetMemberCount()
 	result := make(map[string]*Container, count)
 	if err != nil {
@@ -211,33 +229,44 @@ func (ct *Container) GetMemberMap() (map[string]*Container, error) {
 }
 
 func (ct *Container) GetMember(key string) (*Container, error) {
+	if ct == nil {
+		return nil, ErrPathNotFound
+	}
 	cStr := C.CString(key)
 	defer C.free(unsafe.Pointer(cStr))
 	if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
-		var m Container
 		if ct.HasMember(key) {
+			var m Container
 			m.doc = ct.doc
 			m.ct = C.GetMember(unsafe.Pointer(ct.ct), cStr)
 			return &m, nil
 		} else {
-			return &m, ErrPathNotFound
+			return nil, ErrPathNotFound
 		}
 	} else {
-		var m Container
-		return &m, ErrNotObject
+		return nil, ErrNotObject
 	}
 }
 func (ct *Container) String() string {
+	if ct == nil {
+		return ""
+	}
 	cStr := C.ValGetString(unsafe.Pointer(ct.ct))
 	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str
 }
 func (ct *Container) Bytes() []byte {
+	if ct == nil {
+		return []byte("")
+	}
 	return []byte(ct.String())
 }
 
 func (ct *Container) GetPathContainer(path string) (*Container, error) {
+	if ct == nil {
+		return nil, ErrNotObject
+	}
 	keys := strings.Split(path, ".")
 	next := ct
 	var err error
@@ -251,6 +280,10 @@ func (ct *Container) GetPathContainer(path string) (*Container, error) {
 	return next, nil
 }
 func (ct *Container) PathExists(path string) bool {
+	// don't use this, just call GetPathContainer instead!
+	if ct == nil {
+		return false
+	}
 	_, err := ct.GetPathContainer(path)
 	if err != nil {
 		return false
@@ -259,6 +292,9 @@ func (ct *Container) PathExists(path string) bool {
 	}
 }
 func (ct *Container) GetPathNewContainer(path string) (*Container, error) {
+	if ct == nil {
+		return nil, ErrNotObject
+	}
 	keys := strings.Split(path, ".")
 	next := ct
 	prev := ct
@@ -297,10 +333,17 @@ func (ct *Container) GetPathNewContainer(path string) (*Container, error) {
 
 // typed getters
 func (ct *Container) GetType() int {
-	return int(C.GetType(unsafe.Pointer(ct.ct)))
+	if ct == nil {
+		return TypeNull
+	} else {
+		return int(C.GetType(unsafe.Pointer(ct.ct)))
+	}
 }
 func (ct *Container) GetInt() (int, error) {
-	if CBoolTest(C.IsInt(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		var result int
+		return result, ErrPathNotFound
+	} else if CBoolTest(C.IsInt(unsafe.Pointer(ct.ct))) {
 		result := int(C.ValGetInt(unsafe.Pointer(ct.ct)))
 		return result, nil
 	} else {
@@ -309,7 +352,10 @@ func (ct *Container) GetInt() (int, error) {
 	}
 }
 func (ct *Container) GetInt64() (int64, error) {
-	if CBoolTest(C.IsInt64(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		var result int64
+		return result, ErrPathNotFound
+	} else if CBoolTest(C.IsInt64(unsafe.Pointer(ct.ct))) {
 		result := int64(C.ValGetInt64(unsafe.Pointer(ct.ct)))
 		return result, nil
 	} else {
@@ -318,7 +364,10 @@ func (ct *Container) GetInt64() (int64, error) {
 	}
 }
 func (ct *Container) GetFloat() (float64, error) {
-	if CBoolTest(C.IsDouble(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		var result float64
+		return result, ErrPathNotFound
+	} else if CBoolTest(C.IsDouble(unsafe.Pointer(ct.ct))) {
 		result := float64(C.ValGetDouble(unsafe.Pointer(ct.ct)))
 		return result, nil
 	} else {
@@ -327,7 +376,10 @@ func (ct *Container) GetFloat() (float64, error) {
 	}
 }
 func (ct *Container) GetBool() (bool, error) {
-	if CBoolTest(C.IsBool(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		var result bool
+		return result, ErrPathNotFound
+	} else if CBoolTest(C.IsBool(unsafe.Pointer(ct.ct))) {
 		result := CBoolTest(C.ValGetBool(unsafe.Pointer(ct.ct)))
 		return result, nil
 	} else {
@@ -336,7 +388,10 @@ func (ct *Container) GetBool() (bool, error) {
 	}
 }
 func (ct *Container) GetString() (string, error) {
-	if CBoolTest(C.IsString(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		var result string
+		return result, ErrPathNotFound
+	} else if CBoolTest(C.IsString(unsafe.Pointer(ct.ct))) {
 		cStr := C.ValGetBasicString(unsafe.Pointer(ct.ct))
 		defer C.free(unsafe.Pointer(cStr))
 		str := C.GoString(cStr)
@@ -347,7 +402,9 @@ func (ct *Container) GetString() (string, error) {
 	}
 }
 func (ct *Container) GetArraySize() (int, error) {
-	if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return 0, ErrPathNotFound
+	} else if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
 		size := int(C.ValArraySize(unsafe.Pointer(ct.ct)))
 		return size, nil
 	} else {
@@ -355,6 +412,9 @@ func (ct *Container) GetArraySize() (int, error) {
 	}
 }
 func (ct *Container) GetArrayValue(index int) *Container {
+	if ct == nil {
+		return nil
+	}
 	var a Container
 	a.doc = ct.doc
 	a.ct = C.GetArrayValueAt(unsafe.Pointer(ct.ct), C.int(index))
@@ -362,6 +422,9 @@ func (ct *Container) GetArrayValue(index int) *Container {
 }
 
 func (ct *Container) GetIntArray() ([]int, error) {
+	if ct == nil {
+		return make([]int, 0), ErrPathNotFound
+	}
 	count, err := ct.GetArraySize()
 	result := make([]int, count)
 	if err != nil {
@@ -378,6 +441,9 @@ func (ct *Container) GetIntArray() ([]int, error) {
 	return result, nil
 }
 func (ct *Container) GetStringArray() ([]string, error) {
+	if ct == nil {
+		return make([]string, 0), ErrPathNotFound
+	}
 	count, err := ct.GetArraySize()
 	result := make([]string, count)
 	if err != nil {
@@ -411,6 +477,9 @@ func (ct *Container) GetArray() ([]*Container, int, error) {
 
 // setters
 func (ct *Container) SetValue(v interface{}) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	if v == nil {
 		C.SetNull(unsafe.Pointer(ct.ct))
 		return nil
@@ -448,12 +517,21 @@ func (ct *Container) SetValue(v interface{}) error {
 	}
 }
 func (ct *Container) SetContainer(item *Container) {
+	if ct == nil {
+		return
+	}
 	C.SetValue(unsafe.Pointer(ct.ct), unsafe.Pointer(item.ct))
 }
 func (ct *Container) InitObj() {
+	if ct == nil {
+		return
+	}
 	ct.ct = C.InitObj(unsafe.Pointer(ct.ct))
 }
 func (ct *Container) AddValue(key string, v interface{}) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	item := ct.doc.NewContainer()
 	err := item.SetValue(v)
 	if err != nil {
@@ -463,7 +541,9 @@ func (ct *Container) AddValue(key string, v interface{}) error {
 	return ct.AddMember(key, item)
 }
 func (ct *Container) AddMember(key string, item *Container) error {
-	if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
@@ -477,7 +557,9 @@ func (ct *Container) AddMember(key string, item *Container) error {
 	}
 }
 func (ct *Container) AddMemberArray(key string, items []*Container) error {
-	if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
@@ -496,6 +578,9 @@ func (ct *Container) AddMemberArray(key string, items []*Container) error {
 	}
 }
 func (ct *Container) SetMember(key string, item *Container) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	target, err := ct.GetMember(key)
 	if err == nil {
 		target.SetContainer(item)
@@ -507,6 +592,9 @@ func (ct *Container) SetMember(key string, item *Container) error {
 	return nil
 }
 func (ct *Container) SetMemberValue(key string, v interface{}) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	item := ct.doc.NewContainer()
 	err := item.SetValue(v)
 	if err != nil {
@@ -516,6 +604,9 @@ func (ct *Container) SetMemberValue(key string, v interface{}) error {
 	return ct.SetMember(key, item)
 }
 func (ct *Container) AddMemberAtPath(path string, item *Container) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	dest, err := ct.GetPathNewContainer(path)
 	if err != nil {
 		return err
@@ -524,6 +615,9 @@ func (ct *Container) AddMemberAtPath(path string, item *Container) error {
 	return nil
 }
 func (ct *Container) AddValueAtPath(path string, v interface{}) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	dest, err := ct.GetPathNewContainer(path)
 	if err != nil {
 		return err
@@ -535,10 +629,15 @@ func (ct *Container) AddValueAtPath(path string, v interface{}) error {
 }
 
 func (ct *Container) InitArray() {
+	if ct == nil {
+		return
+	}
 	C.InitArray(unsafe.Pointer(ct.ct))
 }
 func (ct *Container) ArrayAppendContainer(item *Container) error {
-	if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
 		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(item.ct))
 		return nil
 	} else {
@@ -546,7 +645,9 @@ func (ct *Container) ArrayAppendContainer(item *Container) error {
 	}
 }
 func (ct *Container) ArrayAppendCopy(item *Container) error {
-	if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+	if ct == nil || item == nil {
+		return ErrPathNotFound
+	} else if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
 		itemCopy := item.GetCopy()
 		ct.doc.allocated = append(ct.doc.allocated, itemCopy.doc)
 		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(itemCopy.ct))
@@ -556,6 +657,9 @@ func (ct *Container) ArrayAppendCopy(item *Container) error {
 	}
 }
 func (ct *Container) ArrayAppend(v interface{}) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
 	item := ct.doc.NewContainer()
 	item.SetValue(v)
 	return ct.ArrayAppendContainer(item)
@@ -563,7 +667,9 @@ func (ct *Container) ArrayAppend(v interface{}) error {
 
 // deleters
 func (ct *Container) RemoveMember(key string) error {
-	if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
 		return ErrNotObject
 	} else {
 		cStr := C.CString(key)
@@ -573,7 +679,9 @@ func (ct *Container) RemoveMember(key string) error {
 	return nil
 }
 func (ct *Container) ArrayRemove(index int) error {
-	if !CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
 		return ErrNotArray
 	} else if int(C.ValArraySize(unsafe.Pointer(ct.ct))) <= index {
 		return ErrOutOfBounds
@@ -582,4 +690,130 @@ func (ct *Container) ArrayRemove(index int) error {
 	}
 
 	return nil
+}
+
+// new style - no errors (returns nil instead), can be chained
+func (ct *Container) GetMemberCountOrNil() int {
+	if ct == nil {
+		return 0
+	} else if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+		return int(C.GetMemberCount(unsafe.Pointer(ct.ct)))
+	} else {
+		return 0
+	}
+}
+
+func (ct *Container) GetMemberNamesOrNil() []string {
+	count := ct.GetMemberCountOrNil()
+	result := make([]string, count)
+	if count == 0 {
+		return result
+	}
+	for i := 0; i < count; i++ {
+		result[i] = ct.GetMemberName(i)
+	}
+	return result
+}
+
+func (ct *Container) GetMemberMapOrNil() map[string]*Container {
+	count := ct.GetMemberCountOrNil()
+	result := make(map[string]*Container, count)
+	if count == 0 {
+		return result
+	}
+	members, _ := ct.GetMemberNames()
+	for _, m := range members {
+		result[m] = ct.GetMemberOrNil(m)
+	}
+	return result
+}
+
+func (ct *Container) GetMemberOrNil(key string) *Container {
+	if ct == nil {
+		return nil
+	}
+	cStr := C.CString(key)
+	defer C.free(unsafe.Pointer(cStr))
+	if CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+		if ct.HasMember(key) {
+			var m Container
+			m.doc = ct.doc
+			m.ct = C.GetMember(unsafe.Pointer(ct.ct), cStr)
+			return &m
+		} else {
+			return nil
+		}
+	} else {
+		return nil
+	}
+}
+
+func (ct *Container) GetPathContainerOrNil(path string) *Container {
+	if ct == nil {
+		return nil
+	}
+	keys := strings.Split(path, ".")
+	next := ct
+	var err error
+	for _, key := range keys {
+		next, err = next.GetMember(key)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return next
+}
+
+func (ct *Container) GetIntArrayOrNil() []int {
+	if ct == nil {
+		return make([]int, 0)
+	}
+	count, err := ct.GetArraySize()
+	result := make([]int, count)
+	if err != nil {
+		return result
+	}
+
+	for i := 0; i < count; i++ {
+		item := ct.GetArrayValue(i)
+		result[i], err = item.GetInt()
+		if err != nil {
+			return make([]int, 0)
+		}
+	}
+	return result
+}
+
+func (ct *Container) GetStringOrNil() []string {
+	if ct == nil {
+		return make([]string, 0)
+	}
+	count, err := ct.GetArraySize()
+	result := make([]string, count)
+	if err != nil {
+		return result
+	}
+
+	for i := 0; i < count; i++ {
+		item := ct.GetArrayValue(i)
+		result[i], err = item.GetString()
+		if err != nil {
+			return make([]string, 0)
+		}
+	}
+	return result
+}
+
+func (ct *Container) GetArrayOrNil() []*Container {
+	count, err := ct.GetArraySize()
+	result := make([]*Container, count)
+	if err != nil || count == 0 {
+		return result
+	}
+
+	for i := 0; i < count; i++ {
+		result[i] = ct.GetArrayValue(i)
+	}
+	return result
 }
