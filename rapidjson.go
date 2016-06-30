@@ -1,7 +1,6 @@
 package rapidjson
 
 // #cgo CFLAGS: -I. -fpic
-// #cgo LDFLAGS: -L. -lrjwrapper
 // #include <stdlib.h>
 // #include <stdint.h>
 // #include "rjwrapper.h"
