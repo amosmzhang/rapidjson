@@ -73,6 +73,9 @@ func NewDoc() *Doc {
 	return &json
 }
 func (json *Doc) Free() {
+	if json == nil {
+		return
+	}
 	for _, ct := range json.allocated {
 		ct.Free()
 	}
@@ -96,6 +99,9 @@ func (json *Doc) NewContainerArray() *Container {
 	return ct
 }
 func (ct *Container) Free() {
+	if ct == nil {
+		return
+	}
 	if ct != nil {
 		C.ValFree(unsafe.Pointer(ct.ct))
 	}
