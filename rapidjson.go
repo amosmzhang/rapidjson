@@ -407,6 +407,24 @@ func (ct *Container) GetString() (string, error) {
 		return result, ErrNotString
 	}
 }
+func (ct *Container) GetValue() (interface{}, error) {
+	switch ct.GetType() {
+	case TypeString:
+		return ct.GetString()
+	case TypeTrue, TypeFalse:
+		return ct.GetBool()
+	case TypeNumber:
+		if r, err := ct.GetFloat(); err == ErrNotFloat {
+			return ct.GetInt64()
+		} else {
+			return r, err
+		}
+	case TypeArray, TypeObject:
+		return nil, ErrBadType
+	default:
+		return nil, nil
+	}
+}
 func (ct *Container) GetArraySize() (int, error) {
 	if ct == nil {
 		return 0, ErrPathNotFound
