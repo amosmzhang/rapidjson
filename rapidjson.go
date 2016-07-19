@@ -414,8 +414,8 @@ func (ct *Container) GetValue() (interface{}, error) {
 	case TypeTrue, TypeFalse:
 		return ct.GetBool()
 	case TypeNumber:
-		if r, err := ct.GetFloat(); err == ErrNotFloat {
-			return ct.GetInt64()
+		if r, err := ct.GetInt64(); err == ErrNotInt {
+			return ct.GetFloat()
 		} else {
 			return r, err
 		}
@@ -445,19 +445,19 @@ func (ct *Container) GetArrayValue(index int) *Container {
 	return &a
 }
 
-func (ct *Container) GetIntArray() ([]int, error) {
+func (ct *Container) GetIntArray() ([]int64, error) {
 	if ct == nil {
-		return make([]int, 0), ErrPathNotFound
+		return make([]int64, 0), ErrPathNotFound
 	}
 	count, err := ct.GetArraySize()
-	result := make([]int, count)
+	result := make([]int64, count)
 	if err != nil {
 		return result, err
 	}
 
 	for i := 0; i < count; i++ {
 		item := ct.GetArrayValue(i)
-		result[i], err = item.GetInt()
+		result[i], err = item.GetInt64()
 		if err != nil {
 			return result, err
 		}
@@ -713,6 +713,39 @@ func (ct *Container) ArrayRemove(index int) error {
 		C.ArrayRemove(unsafe.Pointer(ct.ct), C.int(index))
 	}
 
+	return nil
+}
+func (ct *Container) RemoveMemberAtPath(path string) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
+	parts := strings.Split(path, ".")
+	if len(parts) >= 1 {
+		switch ct.GetType() {
+		case TypeObject:
+			if len(parts) > 1 {
+				next := ct.GetMemberOrNil(parts[0])
+				if err := next.RemoveMemberAtPath(strings.Join(parts[1:], ".")); err != nil {
+					return err
+				}
+			} else {
+				if err := ct.RemoveMember(parts[0]); err != nil {
+					return err
+				}
+			}
+		case TypeArray:
+			array := ct.GetArrayOrNil()
+			for _, c := range array {
+				if err := c.RemoveMemberAtPath(path); err != nil {
+					return err
+				}
+			}
+		default:
+			return ErrBadType
+		}
+	} else {
+		return ErrBadType
+	}
 	return nil
 }
 

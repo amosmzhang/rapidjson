@@ -65,6 +65,8 @@ Typed getters:
     func (ct *Container) GetStringArray() ([]string, error)
     func (ct *Container) GetArray() ([]*Container, int, error)
 
+    func (ct *Container) GetValue() (interface{}, error)
+
 Making new Container, use root Doc to use memory allocator. Freeing Doc will free associated Containers:
 
     func (json *Doc) NewContainer() *Container
@@ -111,6 +113,7 @@ Usage example:
 
     func (ct *Container) RemoveMember(key string) error
     func (ct *Container) ArrayRemove(index int) error
+    func (ct *Container) RemoveMemberAtPath(path string) error
 
 # Value types:
 
