@@ -17,6 +17,19 @@ var (
         },
         "member4" : "rapidjson is awesome!"
     }`
+	testJSON2 = `{
+        "member4" : "rapidjson is awesome!",
+        "member2" : [1, 2, 3, 4, 5],
+        "member3" : {
+            "sub1" : 1.234,
+            "sub2" : true,
+            "sub3" : null
+        },
+        "member1" : 12345
+    }`
+	testJSON3 = `{
+        "member1" : 12345
+    }`
 )
 
 func TestParse(t *testing.T) {
@@ -132,4 +145,18 @@ func TestRemoves(t *testing.T) {
 
 	expected := `{"member4":"rapidjson is awesome!","member2":[1,2,4,5],"member3":{"sub1":1.234,"sub2":true}}`
 	assert.Equal(t, expected, json.String())
+}
+
+func TestIsEqual(t *testing.T) {
+	json1, _ := NewParsedStringJson(testJSON1)
+	json2, _ := NewParsedStringJson(testJSON2)
+	defer json1.Free()
+	defer json2.Free()
+
+	assert.Equal(t, true, json1.GetContainer().IsEqual(json2.GetContainer()))
+
+	json3, _ := NewParsedStringJson(testJSON3)
+	defer json3.Free()
+
+	assert.Equal(t, false, json3.GetContainer().IsEqual(json1.GetContainer()))
 }

@@ -336,6 +336,14 @@ func (ct *Container) GetPathNewContainer(path string) (*Container, error) {
 
 	return prev, nil
 }
+func (ct *Container) IsEqual(other *Container) bool {
+	if ct == nil || other == nil {
+		return ct == other
+	} else {
+		res := C.IsValEqual(unsafe.Pointer(ct.ct), unsafe.Pointer(other.ct))
+		return CBoolTest(res)
+	}
+}
 
 // typed getters
 func (ct *Container) GetType() int {

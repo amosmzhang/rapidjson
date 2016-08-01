@@ -15,6 +15,8 @@ extern "C" {
     void JsonParse(JsonDoc, char *);
     int HasParseError(JsonDoc);
 
+    int IsValEqual(JsonVal, JsonVal);
+
     char *GetString(JsonDoc);
 
     int HasMember(JsonVal, const char *); 

@@ -50,6 +50,7 @@ Working with Containers:
     func (ct *Container) GetMember(key string) (*Container, error)
     func (ct *Container) GetPathContainer(path string) (*Container, error)
     func (ct *Container) GetPathNewContainer(path string) (*Container, error)
+    func (ct *Container) IsEqual(other *Container) bool
 
 Typed getters:
 

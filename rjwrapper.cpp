@@ -42,6 +42,12 @@ int HasParseError(JsonDoc json) {
     return ((Document *)json)->HasParseError();
 }
 
+int IsValEqual(JsonVal val1, JsonVal val2) {
+    Value * v1 = (Value *)val1;
+    const Value * v2 = (const Value *)val2;
+    return (*v1)==(*v2);
+}
+
 char *GetString(JsonDoc json) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
