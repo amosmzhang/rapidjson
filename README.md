@@ -80,6 +80,7 @@ SetValue() can be used for basic types int (all sizes), float64, bool, string, n
 
     func (ct *Container) SetValue(v interface{}) error
     func (ct *Container) SetContainer(item *Container)
+    func (ct *Container) SetContainerCopy(item *Container)
     func (ct *Container) InitObj()
     func (ct *Container) AddValue(key string, v interface{}) error
     func (ct *Container) AddMember(key string, item *Container) error
