@@ -30,6 +30,17 @@ var (
 	testJSON3 = `{
         "member1" : 12345
     }`
+	testJSON4 = `{
+        "member1" : 12345,
+        "member2" : null,
+        "member3" : [null, 2, 3],
+        "member4" : {
+            "sub1" : true,
+            "sub2" : null,
+            "sub3" : []
+        },
+        "member5" : {}
+    }`
 )
 
 func TestParse(t *testing.T) {
@@ -159,4 +170,20 @@ func TestIsEqual(t *testing.T) {
 	defer json3.Free()
 
 	assert.Equal(t, false, json3.GetContainer().IsEqual(json1.GetContainer()))
+}
+
+func TestStripNulls(t *testing.T) {
+	json, _ := NewParsedStringJson(testJSON4)
+	defer json.Free()
+
+	stripped := json.GetContainer().StripNulls(false)
+	expected := `{"member1":12345,"member4":{"sub1":true},"member3":[2,3]}`
+	assert.Equal(t, expected, stripped.String())
+
+	json2, _ := NewParsedStringJson(testJSON4)
+	defer json2.Free()
+
+	stripped2 := json2.GetContainer().StripNulls(true)
+	expected2 := `{"member1":12345,"member4":{"sub1":true,"sub3":[]},"member3":[2,3]}`
+	assert.Equal(t, expected2, stripped2.String())
 }

@@ -9,6 +9,7 @@ import "unsafe"
 
 import (
 	"errors"
+	"sort"
 	"strings"
 )
 
@@ -710,6 +711,16 @@ func (ct *Container) RemoveMember(key string) error {
 	}
 	return nil
 }
+func (ct *Container) ArrayClear() error {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
+		return ErrNotArray
+	} else {
+		C.ArrayClear(unsafe.Pointer(ct.ct))
+	}
+	return nil
+}
 func (ct *Container) ArrayRemove(index int) error {
 	if ct == nil {
 		return ErrPathNotFound
@@ -755,6 +766,54 @@ func (ct *Container) RemoveMemberAtPath(path string) error {
 		return ErrBadType
 	}
 	return nil
+}
+func (ct *Container) StripNulls(leaveEmptyArray bool) *Container {
+	switch ct.GetType() {
+	case TypeArray:
+		arr, _, _ := ct.GetArray()
+		var removes []int
+		for i, a := range arr {
+			if filtered := a.StripNulls(leaveEmptyArray); filtered == nil {
+				removes = append(removes, i)
+			}
+		}
+		if len(removes) < len(arr) || leaveEmptyArray {
+			sort.Sort(sort.Reverse(sort.IntSlice(removes)))
+			for _, i := range removes {
+				C.ArrayRemove(unsafe.Pointer(ct.ct), C.int(i))
+			}
+			return ct
+		} else {
+			return nil
+		}
+	case TypeObject:
+		members := ct.GetMemberMapOrNil()
+		if len(members) == 0 {
+			return nil
+		} else {
+			start := len(members)
+			var removes []string
+			removed := 0
+			for k, v := range members {
+				if filtered := v.StripNulls(leaveEmptyArray); filtered == nil {
+					removes = append(removes, k)
+				}
+			}
+			for _, member := range removes {
+				ct.RemoveMember(member)
+				removed = removed + 1
+			}
+			if removed == start {
+				return nil
+			} else {
+				return ct
+			}
+		}
+	case TypeString, TypeNumber, TypeTrue, TypeFalse:
+		return ct
+	default:
+		return nil
+	}
 }
 
 // new style - no errors (returns nil instead), can be chained

@@ -58,6 +58,7 @@ extern "C" {
 
     void RemoveMember(JsonVal, const char *);
     void ArrayRemove(JsonVal, int);
+    void ArrayClear(JsonVal);
 
 #ifdef __cplusplus
 }

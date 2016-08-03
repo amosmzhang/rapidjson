@@ -113,8 +113,10 @@ Usage example:
 # Removes
 
     func (ct *Container) RemoveMember(key string) error
+    func (ct *Container) ArrayClear() error
     func (ct *Container) ArrayRemove(index int) error
     func (ct *Container) RemoveMemberAtPath(path string) error
+    func (ct *Container) StripNulls(leaveEmptyArray bool) *Container
 
 # Value types:
 

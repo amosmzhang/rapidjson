@@ -202,3 +202,7 @@ void ArrayRemove(JsonVal value, int index) {
     Value::ConstValueIterator itr = ((Value *)value)->Begin() + index;
     ((Value *)value)->Erase(itr);
 }
+
+void ArrayClear(JsonVal value) {
+    ((Value *)value)->Clear();
+}
