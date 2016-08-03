@@ -187,3 +187,23 @@ func TestStripNulls(t *testing.T) {
 	expected2 := `{"member1":12345,"member4":{"sub1":true,"sub3":[]},"member3":[2,3]}`
 	assert.Equal(t, expected2, stripped2.String())
 }
+
+func TestCopy(t *testing.T) {
+	json1, _ := NewParsedStringJson(testJSON1)
+	json3, _ := NewParsedStringJson(testJSON3)
+	defer json3.Free()
+
+	dest := json3.GetContainer()
+	src := json1.GetContainer()
+
+	dest.AddValue("copied", nil)
+	dest.GetMemberOrNil("copied").SetContainerCopy(src.GetMemberOrNil("member2"))
+	dest.GetMemberOrNil("copied").ArrayAppendCopy(src.GetMemberOrNil("member1"))
+
+	expected := `{"member1":12345,"copied":[1,2,3,4,5,12345]}`
+	assert.Equal(t, expected, dest.String())
+
+	// check copied values after source is freed
+	json1.Free()
+	assert.Equal(t, expected, dest.String())
+}

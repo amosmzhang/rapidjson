@@ -124,10 +124,9 @@ func (ct *Container) GetCopy() *Container {
 	if ct == nil {
 		return nil
 	}
-	ctStr := ct.String()
-	copyDoc, _ := NewParsedStringJson(ctStr)
-
+	copyDoc := NewDoc()
 	ctCopy := copyDoc.GetContainer()
+	ctCopy.SetContainerCopy(ct)
 	return ctCopy
 }
 
@@ -555,6 +554,12 @@ func (ct *Container) SetContainer(item *Container) {
 	}
 	C.SetValue(unsafe.Pointer(ct.ct), unsafe.Pointer(item.ct))
 }
+func (ct *Container) SetContainerCopy(item *Container) {
+	if ct == nil {
+		return
+	}
+	C.CopyFrom(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(item.ct))
+}
 func (ct *Container) InitObj() {
 	if ct == nil {
 		return
@@ -681,9 +686,9 @@ func (ct *Container) ArrayAppendCopy(item *Container) error {
 	if ct == nil || item == nil {
 		return ErrPathNotFound
 	} else if CBoolTest(C.IsArray(unsafe.Pointer(ct.ct))) {
-		itemCopy := item.GetCopy()
-		ct.doc.allocated = append(ct.doc.allocated, itemCopy.doc)
-		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(itemCopy.ct))
+		newCt := ct.doc.NewContainer()
+		newCt.SetContainerCopy(item)
+		C.ArrayAppend(unsafe.Pointer(ct.doc.json), unsafe.Pointer(ct.ct), unsafe.Pointer(newCt.ct))
 		return nil
 	} else {
 		return ErrNotArray

@@ -194,6 +194,12 @@ void AddStrMember(JsonDoc json, JsonVal value, const char *k, JsonVal v) {
 
     val->AddMember(key, *item, doc->GetAllocator());
 }
+void CopyFrom(JsonDoc json, JsonVal value, JsonVal from) {
+    Value *val = (Value *)value;
+    Value *item = (Value *)from;
+    Document *doc = (Document *)json;
+    val->CopyFrom(*item, doc->GetAllocator());
+}
 void RemoveMember(JsonVal value, const char *k) {
     ((Value *)value)->RemoveMember(k);
 }

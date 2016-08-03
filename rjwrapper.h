@@ -55,6 +55,7 @@ extern "C" {
     JsonVal InitObj(JsonVal);
     void AddMember(JsonDoc, JsonVal, JsonVal, JsonVal);
     void AddStrMember(JsonDoc, JsonVal, const char *, JsonVal);
+    void CopyFrom(JsonDoc, JsonVal, JsonVal);
 
     void RemoveMember(JsonVal, const char *);
     void ArrayRemove(JsonVal, int);
