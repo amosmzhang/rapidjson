@@ -594,6 +594,21 @@ func (ct *Container) AddMember(key string, item *Container) error {
 		}
 	}
 }
+func (ct *Container) AddMemberCopy(key string, item *Container) error {
+	if ct == nil {
+		return ErrPathNotFound
+	} else if !CBoolTest(C.IsObj(unsafe.Pointer(ct.ct))) {
+		return ErrNotObject
+	} else {
+		ct.SetMemberValue(key, nil)
+		target, err := ct.GetMember(key)
+		if err != nil {
+			return err
+		}
+		target.SetContainerCopy(item)
+		return nil
+	}
+}
 func (ct *Container) AddMemberArray(key string, items []*Container) error {
 	if ct == nil {
 		return ErrPathNotFound
@@ -640,6 +655,20 @@ func (ct *Container) SetMemberValue(key string, v interface{}) error {
 	}
 
 	return ct.SetMember(key, item)
+}
+func (ct *Container) SetMemberCopy(key string, item *Container) error {
+	if ct == nil {
+		return ErrPathNotFound
+	}
+	target, err := ct.GetMember(key)
+	if err == nil {
+		target.SetContainerCopy(item)
+	} else if err == ErrNotObject {
+		return err
+	} else if err == ErrPathNotFound {
+		ct.AddMemberCopy(key, item)
+	}
+	return nil
 }
 func (ct *Container) AddMemberAtPath(path string, item *Container) error {
 	if ct == nil {

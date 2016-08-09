@@ -199,8 +199,9 @@ func TestCopy(t *testing.T) {
 	dest.AddValue("copied", nil)
 	dest.GetMemberOrNil("copied").SetContainerCopy(src.GetMemberOrNil("member2"))
 	dest.GetMemberOrNil("copied").ArrayAppendCopy(src.GetMemberOrNil("member1"))
+	dest.SetMemberCopy("copied2", src.GetMemberOrNil("member4"))
 
-	expected := `{"member1":12345,"copied":[1,2,3,4,5,12345]}`
+	expected := `{"member1":12345,"copied":[1,2,3,4,5,12345],"copied2":"rapidjson is awesome!"}`
 	assert.Equal(t, expected, dest.String())
 
 	// check copied values after source is freed
