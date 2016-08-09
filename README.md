@@ -84,10 +84,12 @@ SetValue() can be used for basic types int (all sizes), float64, bool, string, n
     func (ct *Container) InitObj()
     func (ct *Container) AddValue(key string, v interface{}) error
     func (ct *Container) AddMember(key string, item *Container) error
+    func (ct *Container) AddMemberCopy(key string, item *Container) error
     func (ct *Container) AddMemberArray(key string, items []*Container) error
     func (ct *Container) AddMemberAtPath(path string, item *Container) error
     func (ct *Container) AddValueAtPath(path string, v interface{}) error
     func (ct *Container) SetMember(key string, item *Container) error
+    func (ct *Container) SetMemberCopy(key string, item *Container) error
     func (ct *Container) SetMemberValue(key string, v interface{}) error 
     func (ct *Container) InitArray()
     func (ct *Container) ArrayAppendContainer(item *Container) error
