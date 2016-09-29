@@ -3,6 +3,8 @@ package rapidjson
 import (
 	"testing"
 
+	"fmt"
+
 	"github.com/stretchr/testify/assert" // Assertion package
 )
 
@@ -56,6 +58,15 @@ func TestOutput(t *testing.T) {
 
 	expected := `{"member1":12345,"member2":[1,2,3,4,5],"member3":{"sub1":1.234,"sub2":true,"sub3":null},"member4":"rapidjson is awesome!"}`
 	assert.Equal(t, expected, json.String())
+}
+
+func TestPretty(t *testing.T) {
+	json, err := NewParsedStringJson(testJSON1)
+	assert.Nil(t, err, "should not error on parsing")
+	defer json.Free()
+
+	fmt.Println(json.Pretty())
+	fmt.Println(json.String())
 }
 
 func TestGetters(t *testing.T) {
@@ -207,4 +218,13 @@ func TestCopy(t *testing.T) {
 	// check copied values after source is freed
 	json1.Free()
 	assert.Equal(t, expected, dest.String())
+}
+
+func TestNil(t *testing.T) {
+	var ct *Container
+
+	ct = nil
+
+	assert.Equal(t, false, ct.HasMember("test"))
+	assert.Equal(t, false, ct.HasMember(""))
 }

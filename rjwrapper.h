@@ -18,6 +18,7 @@ extern "C" {
     int IsValEqual(JsonVal, JsonVal);
 
     char *GetString(JsonDoc);
+    char *GetPrettyString(JsonDoc json);
 
     int HasMember(JsonVal, const char *); 
     int GetMemberCount(JsonVal);
@@ -34,6 +35,7 @@ extern "C" {
     int IsArray(JsonVal);
     int IsNull(JsonVal);
     char *ValGetString(JsonVal);
+    char *ValGetPrettyString(JsonVal);
     int ValGetInt(JsonVal);
     int64_t ValGetInt64(JsonVal);
     double ValGetDouble(JsonVal);

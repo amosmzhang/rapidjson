@@ -170,6 +170,12 @@ func (json *Doc) String() string {
 	str := C.GoString(cStr)
 	return str
 }
+func (json *Doc) Pretty() string {
+	cStr := C.GetPrettyString(unsafe.Pointer(json.json))
+	defer C.free(unsafe.Pointer(cStr))
+	str := C.GoString(cStr)
+	return str
+}
 func (json *Doc) Bytes() []byte {
 	return []byte(json.String())
 }
@@ -258,6 +264,15 @@ func (ct *Container) String() string {
 		return ""
 	}
 	cStr := C.ValGetString(unsafe.Pointer(ct.ct))
+	defer C.free(unsafe.Pointer(cStr))
+	str := C.GoString(cStr)
+	return str
+}
+func (ct *Container) Pretty() string {
+	if ct == nil {
+		return ""
+	}
+	cStr := C.ValGetPrettyString(unsafe.Pointer(ct.ct))
 	defer C.free(unsafe.Pointer(cStr))
 	str := C.GoString(cStr)
 	return str

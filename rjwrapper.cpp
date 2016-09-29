@@ -1,5 +1,6 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rjwrapper.h"
 #include <iostream>
@@ -51,6 +52,15 @@ int IsValEqual(JsonVal val1, JsonVal val2) {
 char *GetString(JsonDoc json) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    ((Document *)json)->Accept(writer);
+    char *result = strdup(buffer.GetString());
+
+    return result;
+}
+
+char *GetPrettyString(JsonDoc json) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     ((Document *)json)->Accept(writer);
     char *result = strdup(buffer.GetString());
 
@@ -111,6 +121,14 @@ JsonVal GetMember(JsonVal value, const char * key) {
 char *ValGetString(JsonVal value) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    ((Value *)value)->Accept(writer);
+    char *result = strdup(buffer.GetString());
+
+    return result;
+}
+char *ValGetPrettyString(JsonVal value) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     ((Value *)value)->Accept(writer);
     char *result = strdup(buffer.GetString());
 
