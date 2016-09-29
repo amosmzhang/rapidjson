@@ -1,6 +1,6 @@
 # rapidjson
 
-Go package using [C++ rapidjson](https://github.com/miloyip/rapidjson) for better JSON handling 
+Fast go json parser wrapping [C++ rapidjson](https://github.com/miloyip/rapidjson)
 
 # Quick start
 
@@ -31,8 +31,10 @@ A call to HasParseError() is included at the end of each parsing func, and error
 For outputting:
 
     func (json *Doc) String() string
+    func (json *Doc) Pretty() string
     func (json *Doc) Bytes() []byte
     func (ct *Container) String() string
+    func (ct *Container) Pretty() string
     func (ct *Container) Bytes() []byte
 
 Getting a Doc's Container:
