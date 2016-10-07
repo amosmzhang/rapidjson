@@ -746,6 +746,9 @@ func (ct *Container) ArrayAppend(v interface{}) error {
 	item.SetValue(v)
 	return ct.ArrayAppendContainer(item)
 }
+func (ct *Container) SwapContainer(item *Container) {
+	C.Swap(unsafe.Pointer(ct.ct), unsafe.Pointer(item.ct))
+}
 
 // deleters
 func (ct *Container) RemoveMember(key string) error {
