@@ -228,3 +228,23 @@ func TestNil(t *testing.T) {
 	assert.Equal(t, false, ct.HasMember("test"))
 	assert.Equal(t, false, ct.HasMember(""))
 }
+
+func TestSwap(t *testing.T) {
+	item1 := `{"a":1, "b":null}`
+	item2 := `{"a":2}`
+
+	json1, _ := NewParsedStringJson(item1)
+	json2, _ := NewParsedStringJson(item2)
+
+	ct1 := json1.GetContainer()
+	ct2 := json2.GetContainer()
+
+	ct1.GetMemberOrNil("a").SwapContainer(ct2.GetMemberOrNil("a"))
+	assert.Equal(t, `{"a":2,"b":null}`, json1.String())
+
+	json2.Free()
+
+	assert.Equal(t, `{"a":2,"b":null}`, json1.String())
+
+	json1.Free()
+}

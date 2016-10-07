@@ -218,6 +218,13 @@ void CopyFrom(JsonDoc json, JsonVal value, JsonVal from) {
     Document *doc = (Document *)json;
     val->CopyFrom(*item, doc->GetAllocator());
 }
+
+void Swap(JsonVal value, JsonVal other) {
+    Value *val = (Value *)value;
+    Value *item = (Value *)other;
+    val->Swap(*item);
+}
+
 void RemoveMember(JsonVal value, const char *k) {
     ((Value *)value)->RemoveMember(k);
 }
