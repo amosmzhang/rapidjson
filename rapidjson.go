@@ -26,26 +26,26 @@ var (
 	ErrMemberExists = errors.New("Member already exists")
 	ErrOutOfBounds  = errors.New("Array index out of bounds")
 
-    parseErrors = []string{
-        "No error",
-        "The document is empty",
-        "The document root must not follow by other values",
-        "Invalid value",
-        "Missing a name for object member",
-        "Missing a colon after a name of object member",
-        "Missing a comma or '}' after an object member",
-        "Missing a comma or ']' after an array element",
-        "Incorrect hex digit after \\u escape in string",
-        "The surrogate pair in string is invalid",
-        "Invalid escape character in string",
-        "Missing a closing quotation mark in string",
-        "Invalid encoding in string",
-        "Number too big to be stored in double",
-        "Miss fraction part in number",
-        "Miss exponent in number",
-        "Parsing was terminated",
-        "Unspecific syntax error",
-    }
+	parseErrors = []string{
+		"No error",
+		"The document is empty",
+		"The document root must not follow by other values",
+		"Invalid value",
+		"Missing a name for object member",
+		"Missing a colon after a name of object member",
+		"Missing a comma or '}' after an object member",
+		"Missing a comma or ']' after an array element",
+		"Incorrect hex digit after \\u escape in string",
+		"The surrogate pair in string is invalid",
+		"Invalid escape character in string",
+		"Missing a closing quotation mark in string",
+		"Invalid encoding in string",
+		"Number too big to be stored in double",
+		"Miss fraction part in number",
+		"Miss exponent in number",
+		"Parsing was terminated",
+		"Unspecific syntax error",
+	}
 )
 
 const (
@@ -171,7 +171,7 @@ func (json *Doc) ParseString(input string) error {
 	}
 }
 func (json *Doc) GetParseError() string {
-    return parseErrors[int(C.GetParseErrorCode(unsafe.Pointer(json.json)))]
+	return parseErrors[int(C.GetParseErrorCode(unsafe.Pointer(json.json)))]
 }
 func NewParsedJson(input []byte) (*Doc, error) {
 	doc := NewDoc()
