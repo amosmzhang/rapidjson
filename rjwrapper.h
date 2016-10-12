@@ -14,6 +14,7 @@ extern "C" {
 
     void JsonParse(JsonDoc, char *);
     int HasParseError(JsonDoc);
+    int GetParseErrorCode(JsonDoc);
 
     int IsValEqual(JsonVal, JsonVal);
 
