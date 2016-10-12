@@ -49,6 +49,10 @@ func TestParse(t *testing.T) {
 	json, err := NewParsedStringJson(testJSON1)
 	assert.Nil(t, err, "should not error on parsing")
 	defer json.Free()
+
+    json2, err := NewParsedStringJson(`{"bad_json" "missing :"}`)
+    assert.Equal(t, ErrJsonParse, err)
+    fmt.Println(json2.GetParseError())
 }
 
 func TestOutput(t *testing.T) {

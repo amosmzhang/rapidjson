@@ -43,6 +43,10 @@ int HasParseError(JsonDoc json) {
     return ((Document *)json)->HasParseError();
 }
 
+int GetParseErrorCode(JsonDoc json) {
+    return ((Document *)json)->GetParseError();
+}
+
 int IsValEqual(JsonVal val1, JsonVal val2) {
     Value * v1 = (Value *)val1;
     const Value * v2 = (const Value *)val2;
