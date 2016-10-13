@@ -165,13 +165,13 @@ func (json *Doc) ParseString(input string) error {
 	C.JsonParse(unsafe.Pointer(json.json), cStr)
 
 	if json.HasParseError() {
-		return ErrJsonParse
+		errCode := int(C.GetParseErrorCode(unsafe.Pointer(json.json)))
+		errOffset := int(C.GetParseErrorOffset(unsafe.Pointer(json.json)))
+		errStr := "JSON parsing error: " + parseErrors[errCode] + " at: " + input[:errOffset]
+		return errors.New(errStr)
 	} else {
 		return nil
 	}
-}
-func (json *Doc) GetParseError() string {
-	return parseErrors[int(C.GetParseErrorCode(unsafe.Pointer(json.json)))]
 }
 func NewParsedJson(input []byte) (*Doc, error) {
 	doc := NewDoc()

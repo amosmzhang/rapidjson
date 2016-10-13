@@ -46,6 +46,9 @@ int HasParseError(JsonDoc json) {
 int GetParseErrorCode(JsonDoc json) {
     return ((Document *)json)->GetParseError();
 }
+int64_t GetParseErrorOffset(JsonDoc json) {
+    return ((Document *)json)->GetErrorOffset();
+}
 
 int IsValEqual(JsonVal val1, JsonVal val2) {
     Value * v1 = (Value *)val1;
