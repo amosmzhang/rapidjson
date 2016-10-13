@@ -23,9 +23,8 @@ rapidjson has two types: Container and Doc. Container is a generalized value typ
     func NewParsedJson(input []byte) (*Doc, error)
     func NewParsedStringJson(input string) (*Doc, error)
     func (json *Doc) HasParseError() bool
-    func (json *Doc) GetParseError() string
 
-A call to HasParseError() is included at the end of each parsing func, and error is returned.
+A call to HasParseError() is included at the end of each parsing func, and error is returned with details.
 
 # Getters
 
@@ -136,7 +135,6 @@ Usage example:
 
 # Error types
 
-	ErrJsonParse    - JSON parsing error
 	ErrNotArray     - Not an array
 	ErrNotObject    - Not an object
 	ErrPathNotFound - Path not found

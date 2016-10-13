@@ -15,11 +15,12 @@ extern "C" {
     void JsonParse(JsonDoc, char *);
     int HasParseError(JsonDoc);
     int GetParseErrorCode(JsonDoc);
+    int64_t GetParseErrorOffset(JsonDoc);
 
     int IsValEqual(JsonVal, JsonVal);
 
     char *GetString(JsonDoc);
-    char *GetPrettyString(JsonDoc json);
+    char *GetPrettyString(JsonDoc);
 
     int HasMember(JsonVal, const char *); 
     int GetMemberCount(JsonVal);
