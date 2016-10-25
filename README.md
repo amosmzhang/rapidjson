@@ -39,7 +39,7 @@ For outputting:
 
 Getting a Doc's Container:
 
-    func (json *Doc) GetContainer() *Container 
+    func (json *Doc) GetContainer() *Container
     func (json *Doc) GetContainerNewObj() *Container
 
 Working with Containers:
@@ -48,7 +48,7 @@ Working with Containers:
     func (ct *Container) GetMemberCount() (int, error)
     func (ct *Container) GetMemberName(index int) string
     func (ct *Container) GetMemberNames() ([]string, error)
-    func (ct *Container) GetMemberMap() (map[string]*Container, error) 
+    func (ct *Container) GetMemberMap() (map[string]*Container, error)
     func (ct *Container) GetMember(key string) (*Container, error)
     func (ct *Container) GetPathContainer(path string) (*Container, error)
     func (ct *Container) GetPathNewContainer(path string) (*Container, error)
@@ -92,7 +92,7 @@ SetValue() can be used for basic types int (all sizes), float64, bool, string, n
     func (ct *Container) AddValueAtPath(path string, v interface{}) error
     func (ct *Container) SetMember(key string, item *Container) error
     func (ct *Container) SetMemberCopy(key string, item *Container) error
-    func (ct *Container) SetMemberValue(key string, v interface{}) error 
+    func (ct *Container) SetMemberValue(key string, v interface{}) error
     func (ct *Container) InitArray()
     func (ct *Container) ArrayAppendContainer(item *Container) error
     func (ct *Container) ArrayAppendCopy(item *Container) error
@@ -146,3 +146,44 @@ Usage example:
 	ErrMemberExists - Member already exists
 	ErrOutOfBounds  - Array index out of bounds
 
+# Benchmarks
+
+The following benchmark test was performed by reading 100,000 lines of JSON from a file (~1.5kb per line), and parsing each with Go's `encoding/json` as well as `rapidjson`. One binary was built using each library (all other code was identical) and both were run 5 times on a Mid 2015 Macbook Pro (2.8 GHz Intel Core i7).
+
+RJ took **a full second less** to complete this operation, running in about **59%** of the time it took Go's library to do the same task.
+
+Using `rapidjson`: (average total **2.0018s**)
+
+    $ time ./rj
+    100000 documents parsed
+    ./rj  2.10s user 0.29s system 116% cpu 2.047 total
+    $ time ./rj
+    100000 documents parsed
+    ./rj  2.05s user 0.27s system 118% cpu 1.958 total
+    $ time ./rj
+    100000 documents parsed
+    ./rj  2.11s user 0.27s system 118% cpu 2.010 total
+    $ time ./rj
+    100000 documents parsed
+    ./rj  2.07s user 0.27s system 117% cpu 1.985 total
+    $ time ./rj
+    100000 documents parsed
+    ./rj  2.09s user 0.27s system 117% cpu 2.009 total
+
+Using `encoding/json`: (average total **3.3674s**)
+
+    $ time ./json
+    100000 documents parsed
+    ./json  3.40s user 0.12s system 105% cpu 3.335 total
+    $ time ./json
+    100000 documents parsed
+    ./json  3.46s user 0.12s system 105% cpu 3.374 total
+    $ time ./json
+    100000 documents parsed
+    ./json  3.44s user 0.11s system 105% cpu 3.349 total
+    $ time ./json
+    100000 documents parsed
+    ./json  3.50s user 0.12s system 105% cpu 3.412 total
+    $ time ./json
+    100000 documents parsed
+    ./json  3.45s user 0.11s system 105% cpu 3.367 total
