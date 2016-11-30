@@ -6,7 +6,7 @@ Fast go json parser wrapping [C++ rapidjson](https://github.com/miloyip/rapidjso
 
 In package main:
 
-    import "github.com/bottlenose-inc/rapidjson"
+    import "github.com/amosmzhang/rapidjson"
     ...
     json, err := rapidjson.NewParsedStringJson(`{"project":"rapidjson","stars":10,"use":"everywhere"}`)
     ...
