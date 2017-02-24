@@ -2,6 +2,8 @@
 
 Fast go json parser wrapping [C++ rapidjson](https://github.com/miloyip/rapidjson)
 
+Latest version tested for go1.7.4 and go1.8
+
 # Quick start
 
 In package main:
